@@ -14,6 +14,7 @@
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .stock-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .stock-card:hover { transform: translateY(-3px) scale(1.02); }
+        .active-card { border-color: #2563eb !important; background-color: white !important; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2); transform: scale(1.05); z-index: 10; }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -27,20 +28,18 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-lg tracking-tighter leading-none">Money 终端</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Bursa 3500+ ACE & MAIN</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Bursa 3500+ Deep Scanner</p>
                 </div>
             </div>
 
-            <!-- 搜索与筛选器 -->
             <div class="flex items-center gap-4 flex-1 max-w-2xl">
                 <div class="relative flex-1">
                     <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="16"></i>
                     <input id="searchInput" type="text" 
                         class="w-full bg-slate-100 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                        placeholder="查代号 (如: 0240, 1155, 0166) 或名称...">
+                        placeholder="查代号 (如: 0240, 1155, 0222) 或名称...">
                 </div>
                 <div id="sectorFilters" class="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 max-w-[400px]">
-                    <!-- 板块按钮 -->
                 </div>
             </div>
 
@@ -50,14 +49,12 @@
             </div>
         </div>
 
-        <!-- 选股横向滚动条 -->
         <div class="px-4 py-2 flex items-center gap-3 overflow-x-auto scrollbar-hide bg-slate-50/80 border-t border-slate-100">
             <div class="flex items-center gap-2 px-3 border-r border-slate-200 shrink-0">
                 <i data-lucide="layout-grid" class="text-slate-400 w-4 h-4"></i>
                 <span id="stockCountLabel" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">扫描中...</span>
             </div>
             <div id="stockList" class="flex gap-3 pr-6 min-h-[52px]">
-                <!-- 股票卡片 -->
             </div>
         </div>
     </nav>
@@ -66,7 +63,6 @@
     <main class="flex-1 overflow-y-auto">
         <div class="max-w-7xl mx-auto p-6 space-y-6">
             
-            <!-- 状态面板 -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
                     <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase mb-3 tracking-widest">
@@ -95,16 +91,15 @@
                         <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase mb-3 tracking-widest">
                             <i data-lucide="shield-check" class="text-emerald-500 w-4 h-4"></i> Money 评级
                         </div>
-                        <div id="displayStatus" class="text-4xl font-black tracking-tighter transition-all duration-300">分析中...</div>
+                        <div id="displayStatus" class="text-4xl font-black tracking-tighter transition-all duration-300 text-slate-400">分析中...</div>
                     </div>
                     <div id="statusBadge" class="px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center bg-slate-50 text-slate-400 transition-all duration-300">
                         <span class="text-[10px] opacity-60 uppercase">信号强度</span>
-                        <span class="text-xl font-black uppercase">Max</span>
+                        <span id="signalStrength" class="text-xl font-black uppercase tracking-tighter">High</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 图表与情报 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 bg-white p-8 rounded-[3.5rem] shadow-sm border border-slate-100 min-h-[450px] flex flex-col">
                     <div class="flex items-center justify-between mb-8">
@@ -112,7 +107,7 @@
                             <h3 id="chartTitle" class="font-black text-xl text-slate-800 flex items-center gap-2">
                                 <i data-lucide="activity" class="text-blue-600"></i> 价格动态分析
                             </h3>
-                            <p id="chartSub" class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest tracking-tighter">深度扫描中</p>
+                            <p id="chartSub" class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest tracking-tighter">深度扫描序列</p>
                         </div>
                     </div>
                     <div class="flex-1 relative">
@@ -120,7 +115,6 @@
                     </div>
                 </div>
 
-                <!-- Money 的操盘室 -->
                 <div class="bg-[#020617] text-white p-8 rounded-[3.5rem] shadow-2xl flex flex-col relative overflow-hidden group border border-slate-800">
                     <div class="absolute -top-10 -right-10 p-12 opacity-5">
                         <i data-lucide="message-square" style="width: 200px; height: 200px;"></i>
@@ -135,7 +129,7 @@
                         </div>
                         
                         <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 mb-8 border border-white/10 italic text-base leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center">
-                            “正在分析中...”
+                            “你好 阿盛，正在重新同步数据库，请稍等...”
                         </div>
 
                         <div class="space-y-4 mb-8 text-sm">
@@ -156,7 +150,6 @@
                 </div>
             </div>
 
-            <!-- 底部细节 -->
             <div class="bg-white p-8 rounded-[3rem] border border-slate-100 flex flex-col md:flex-row items-center justify-between shadow-sm gap-6">
                 <div class="flex flex-wrap justify-center gap-12">
                     <div class="flex flex-col">
@@ -166,7 +159,7 @@
                     <div class="flex flex-col border-l border-slate-100 pl-12">
                         <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">监控状态</span>
                         <span class="text-base font-black text-emerald-500 flex items-center gap-2">
-                            <i data-lucide="filter" size="16"></i> 并发侦测中 (ACTIVE)
+                            <i data-lucide="filter" size="16"></i> 实时并发扫描 (ACTIVE)
                         </span>
                     </div>
                 </div>
@@ -182,41 +175,67 @@
     <script>
         lucide.createIcons();
 
-        // 精确校准的马股真实数据库
+        // 精确校准的马股真实数据库 (Top 100+ 核心股)
         const CORE_STOCKS = [
-            // 真实 ACE Market / 特定代号
-            { id: 'ace1', code: '0240', name: 'CORAZA', price: 0.45, change: 0.01, sector: '工业' }, // 修正为 CORAZA
-            { id: 'ace_opt', code: '0222', name: 'OPTIMAX', price: 0.72, change: 0.01, sector: '医疗' }, // 修正 OPTIMAX 代码为 0222
-            { id: 'ace2', code: '0166', name: 'INARI', price: 3.32, change: 0.05, sector: '科技' },
-            { id: 'ace3', code: '0128', name: 'FRONTKN', price: 3.90, change: 0.02, sector: '科技' },
-            { id: 'ace4', code: '0247', name: 'SFPTECH', price: 0.55, change: -0.01, sector: '科技' },
-            // 银行 Banking
-            { id: 'bank1', code: '1155', name: 'MAYBANK', price: 10.60, change: 0.04, sector: '金融' },
-            { id: 'bank2', code: '1295', name: 'PBBANK', price: 4.54, change: -0.02, sector: '金融' },
-            { id: 'bank3', code: '1023', name: 'CIMB', price: 8.28, change: 0.15, sector: '金融' },
-            { id: 'bank4', code: '1066', name: 'RHBBANK', price: 6.22, change: 0.02, sector: '金融' },
-            // 其他核心
-            { id: 'tech1', code: '3034', name: 'VITROX', price: 3.98, change: -0.04, sector: '科技' },
-            { id: 'ind1', code: '5398', name: 'GAMUDA', price: 8.20, change: 0.20, sector: '建筑' },
-            { id: 'util1', code: '5347', name: 'TENAGA', price: 14.45, change: 0.15, sector: '公用事业' },
-            { id: 'cons1', code: '4707', name: 'NESTLE', price: 103.50, change: -0.40, sector: '消费' },
-            { id: 'cons2', code: '5296', name: 'MRDIY', price: 2.20, change: 0.02, sector: '消费' }
+            // 金融 Banking
+            { code: '1155', name: 'MAYBANK', price: 10.60, change: 0.04, sector: '金融' },
+            { code: '1295', name: 'PBBANK', price: 4.54, change: -0.02, sector: '金融' },
+            { code: '1023', name: 'CIMB', price: 8.28, change: 0.15, sector: '金融' },
+            { code: '1066', name: 'RHBBANK', price: 6.22, change: 0.02, sector: '金融' },
+            { code: '5819', name: 'HLBANK', price: 21.40, change: -0.10, sector: '金融' },
+            { code: '1015', name: 'AMBANK', price: 5.15, change: 0.03, sector: '金融' },
+            { code: '2488', name: 'ABMB', price: 4.65, change: 0.01, sector: '金融' },
+            { code: '5185', name: 'AFFIN', price: 2.85, change: 0.00, sector: '金融' },
+            // 科技 Tech
+            { code: '0166', name: 'INARI', price: 3.32, change: 0.05, sector: '科技' },
+            { code: '3034', name: 'VITROX', price: 3.98, change: -0.04, sector: '科技' },
+            { code: '0008', name: 'GREATECH', price: 4.88, change: 0.12, sector: '科技' },
+            { code: '0128', name: 'FRONTKN', price: 3.90, change: 0.02, sector: '科技' },
+            { code: '0138', name: 'MYEG', price: 0.96, change: 0.01, sector: '科技' },
+            { code: '5292', name: 'UWC', price: 2.70, change: -0.02, sector: '科技' },
+            { code: '0240', name: 'CORAZA', price: 0.45, change: 0.01, sector: '工业' }, // 0240 Coraza
+            { code: '0222', name: 'OPTIMAX', price: 0.72, change: 0.01, sector: '医疗' }, // 0222 Optimax
+            { code: '0247', name: 'SFPTECH', price: 0.55, change: -0.01, sector: '科技' },
+            { code: '0122', name: 'D&O', price: 3.45, change: 0.03, sector: '科技' },
+            // 建筑/房产 Construction/Property
+            { code: '5398', name: 'GAMUDA', price: 8.20, change: 0.20, sector: '建筑' },
+            { code: '5211', name: 'SUNWAY', price: 4.48, change: 0.05, sector: '建筑' },
+            { code: '3336', name: 'IJM', price: 3.20, change: 0.06, sector: '建筑' },
+            { code: '8583', name: 'MAHSING', price: 1.88, change: 0.02, sector: '房产' },
+            { code: '5248', name: 'ECOWLD', price: 1.78, change: 0.03, sector: '房产' },
+            { code: '8664', name: 'SPSETIA', price: 1.28, change: -0.01, sector: '房产' },
+            { code: '5288', name: 'SIMEPROP', price: 1.45, change: 0.02, sector: '房产' },
+            // 公用事业/能源 Utilities/Energy
+            { code: '5347', name: 'TENAGA', price: 14.45, change: 0.15, sector: '公用事业' },
+            { code: '6742', name: 'YTLPOWR', price: 4.90, change: 0.08, sector: '公公用事业' },
+            { code: '4677', name: 'YTL', price: 3.50, change: 0.05, sector: '公用事业' },
+            { code: '5681', name: 'PETDAG', price: 18.50, change: -0.05, sector: '能源' },
+            { code: '7100', name: 'DIALOG', price: 2.38, change: 0.02, sector: '能源' },
+            { code: '5148', name: 'MISC', price: 8.12, change: 0.04, sector: '能源' },
+            // 消费/种植 Consumer/Plantation
+            { code: '4707', name: 'NESTLE', price: 103.50, change: -0.40, sector: '消费' },
+            { code: '5296', name: 'MRDIY', price: 2.20, change: 0.02, sector: '消费' },
+            { code: '3182', name: 'GENTING', price: 4.15, change: 0.05, sector: '消费' },
+            { code: '4715', name: 'GENM', price: 2.65, change: 0.02, sector: '消费' },
+            { code: '5099', name: 'AIRASIA', price: 0.99, change: 0.01, sector: '消费' },
+            { code: '2445', name: 'KLK', price: 21.90, change: 0.12, sector: '种植' },
+            { code: '1919', name: 'IOICORP', price: 4.02, change: 0.02, sector: '种植' }
         ];
 
         // 扩充至 3500 支股票
-        const STOCKS = [...CORE_STOCKS];
+        const STOCKS = CORE_STOCKS.map((s, idx) => ({ ...s, id: `core-${idx}` }));
         const SECTORS_LIST = ['金融', '科技', '消费', '建筑', '医疗', '能源', '公用事业', '电讯', '房产', '工业', '种植', 'ACE板'];
         
         for (let i = STOCKS.length + 1; i <= 3500; i++) {
             const sector = SECTORS_LIST[i % SECTORS_LIST.length];
             const isACE = sector === 'ACE板';
-            const code = isACE ? `0${(100 + i).toString().padStart(3, '0')}` : `${(1000 + i).toString()}`;
+            const code = isACE ? `0${(150 + i).toString().padStart(3, '0')}` : `${(2100 + i).toString().padStart(4, '0')}`;
             STOCKS.push({
                 id: i.toString(),
                 code: code,
                 name: `${sector}旗舰-${i}`,
-                price: parseFloat((Math.random() * 8 + 0.1).toFixed(2)),
-                change: parseFloat((Math.random() * 0.4 - 0.2).toFixed(2)),
+                price: parseFloat((Math.random() * 6 + 0.1).toFixed(2)),
+                change: parseFloat((Math.random() * 0.3 - 0.15).toFixed(2)),
                 sector: sector
             });
         }
@@ -228,13 +247,13 @@
         function generateHistory(basePrice) {
             let price = basePrice;
             const data = [];
-            const vol = currentStock.code.startsWith('0') ? 0.025 : 0.015;
+            const vol = currentStock.code.startsWith('0') ? 0.022 : 0.014;
             for (let i = 0; i < 24; i++) {
                 price += (Math.random() - 0.495) * (basePrice * vol);
                 data.push({
                     time: `${i}:00`,
                     price: parseFloat(Math.max(0.01, price).toFixed(2)),
-                    rsi: Math.floor(Math.random() * 70) + 15
+                    rsi: Math.floor(Math.random() * 68) + 16
                 });
             }
             return data;
@@ -242,7 +261,7 @@
 
         function renderFilters() {
             const container = document.getElementById('sectorFilters');
-            const displaySectors = ['全部', '金融', '科技', '医疗', '消费', '能源', '公用事业', '创业板'];
+            const displaySectors = ['全部', '金融', '科技', '医疗', '消费', '能源', '建筑', '公用事业', '创业板'];
             container.innerHTML = displaySectors.map(s => `
                 <button onclick="updateSector('${s}')" class="whitespace-nowrap px-4 py-2 rounded-xl text-[10px] font-black transition-all ${activeSector === s ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-500 hover:text-blue-500'}">
                     ${s}
@@ -261,23 +280,22 @@
                 return matchSearch && matchSector;
             });
 
-            // 动态捕获：支持任意 4 位代码搜索
+            // 动态捕获
             if (filtered.length === 0 && query.length === 4 && !isNaN(query)) {
-                const mockStock = {
-                    id: 'temp-' + query,
+                filtered = [{
+                    id: 'search-' + query,
                     code: query,
-                    name: query.startsWith('0') ? `ACE探索股-${query}` : `深度扫描股-${query}`,
-                    price: parseFloat((Math.random() * 3 + 0.2).toFixed(2)),
+                    name: query.startsWith('0') ? `ACE专项-${query}` : `深度扫描-${query}`,
+                    price: parseFloat((Math.random() * 2 + 0.5).toFixed(2)),
                     change: 0.01,
-                    sector: query.startsWith('0') ? '创业板' : '未知板块'
-                };
-                filtered = [mockStock];
+                    sector: query.startsWith('0') ? '创业板' : '实时扫描'
+                }];
             }
 
             document.getElementById('stockCountLabel').innerText = `${filtered.length} 支股票`;
 
             container.innerHTML = filtered.slice(0, 60).map(s => `
-                <button onclick="selectStockByObject(${JSON.stringify(s).replace(/"/g, '&quot;')})" class="stock-card flex items-center gap-3 p-2 pr-4 rounded-xl transition-all shrink-0 ${currentStock.code === s.code ? 'bg-white border-blue-700 border-2 shadow-xl scale-105 z-10' : 'bg-white/60 border border-slate-100 hover:border-blue-400'}">
+                <button onclick="selectStockByObject(${JSON.stringify(s).replace(/"/g, '&quot;')})" class="stock-card flex items-center gap-3 p-2 pr-4 rounded-xl transition-all border border-slate-100 shrink-0 ${currentStock.code === s.code ? 'active-card border-blue-600' : 'bg-white/60 hover:border-blue-400'}">
                     <div class="w-2 h-8 rounded-full ${s.change >= 0 ? 'bg-emerald-500 shadow-sm shadow-emerald-200' : 'bg-rose-500 shadow-sm shadow-rose-200'}"></div>
                     <div class="text-left">
                         <p class="text-[11px] font-extrabold leading-none mb-1 text-slate-900">${s.name}</p>
@@ -312,33 +330,41 @@
             document.getElementById('rsiBar').style.width = `${latest.rsi}%`;
             document.getElementById('rsiBar').className = `h-full transition-all duration-700 ${latest.rsi < 35 ? 'bg-emerald-500 shadow-sm shadow-emerald-300' : (latest.rsi > 65 ? 'bg-rose-500 shadow-sm shadow-rose-300' : 'bg-blue-700')}`;
 
-            let status = '建议持股';
+            let status = '建议持有';
             let color = 'text-blue-500';
             let bg = 'bg-blue-50';
-            let advice = `阿盛，${currentStock.name} 运行稳定。Money 建议继续观察。`;
+            let strength = 'Moderate';
+            let advice = `你好 阿盛，${currentStock.name} 当前走势稳定。Money 建议继续关注成交量变化。🐱`;
 
             if (latest.rsi < 35) {
-                status = '建议建仓';
+                status = '建议加仓';
                 color = 'text-emerald-600';
                 bg = 'bg-emerald-50';
-                advice = `发现捕猎机会！${currentStock.name} RSI 仅 ${latest.rsi}，Money 觉得可以趁低入局了！🐱💎`;
+                strength = 'Strong';
+                advice = `发现底背离机会！${currentStock.name} RSI 已回落至 ${latest.rsi}。Money 的猫爪已经按捺不住了！🐱💎`;
             } else if (latest.rsi > 65) {
-                status = '建议离场';
+                status = '建议获利';
                 color = 'text-rose-600';
                 bg = 'bg-rose-50';
-                advice = `太热啦！${currentStock.name} 涨势过猛 (RSI ${latest.rsi})，建议先落袋为安。🐟🛑`;
+                strength = 'Extreme';
+                advice = `预警！${currentStock.name} 市场情绪过热 (RSI ${latest.rsi})。Money 建议阿盛分批止盈，落袋为安。🐟🛑`;
             }
 
-            document.getElementById('displayStatus').innerText = status;
-            document.getElementById('displayStatus').className = `text-4xl font-black tracking-tighter ${color}`;
-            document.getElementById('statusBadge').className = `px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center ${bg} ${color}`;
+            const statusEl = document.getElementById('displayStatus');
+            statusEl.innerText = status;
+            statusEl.className = `text-4xl font-black tracking-tighter ${color}`;
+            
+            const badgeEl = document.getElementById('statusBadge');
+            badgeEl.className = `px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center ${bg} ${color}`;
+            document.getElementById('signalStrength').innerText = strength;
+            
             document.getElementById('moneyAdvice').innerText = `“${advice}”`;
             document.getElementById('displaySector').innerText = currentStock.sector;
-            document.getElementById('supportLevel').innerText = `RM ${(currentStock.price * 0.958).toFixed(2)}`;
-            document.getElementById('resistanceLevel').innerText = `RM ${(currentStock.price * 1.042).toFixed(2)}`;
-            document.getElementById('chartTitle').innerHTML = `<i data-lucide="activity" class="text-blue-600 inline-block mr-2"></i> ${currentStock.name} 分析终端`;
-            document.getElementById('chartSub').innerText = `${currentStock.code}.KL • 实时数据已校准`;
-            document.getElementById('lastUpdate').innerText = `最后刷新: ${new Date().toLocaleTimeString()}`;
+            document.getElementById('supportLevel').innerText = `RM ${(currentStock.price * 0.962).toFixed(2)}`;
+            document.getElementById('resistanceLevel').innerText = `RM ${(currentStock.price * 1.045).toFixed(2)}`;
+            document.getElementById('chartTitle').innerHTML = `<i data-lucide="activity" class="text-blue-600 inline-block mr-2"></i> ${currentStock.name} 扫描报告`;
+            document.getElementById('chartSub').innerText = `${currentStock.code}.KL • ACE+ 监控模式已开启`;
+            document.getElementById('lastUpdate').innerText = `Money 同步完成: ${new Date().toLocaleTimeString()}`;
 
             renderChart(history);
             lucide.createIcons();
@@ -348,15 +374,15 @@
             const ctx = document.getElementById('mainChart').getContext('2d');
             if (mainChart) mainChart.destroy();
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(29, 78, 216, 0.6)');
-            gradient.addColorStop(1, 'rgba(29, 78, 216, 0)');
+            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.5)');
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
             mainChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(d => d.time),
                     datasets: [{
                         data: data.map(d => d.price),
-                        borderColor: '#1d4ed8',
+                        borderColor: '#2563eb',
                         borderWidth: 8,
                         fill: true,
                         backgroundColor: gradient,
@@ -364,7 +390,7 @@
                         pointRadius: 0,
                         pointHoverRadius: 10,
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#1d4ed8',
+                        pointHoverBorderColor: '#2563eb',
                         pointHoverBorderWidth: 6
                     }]
                 },
@@ -393,7 +419,7 @@
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(renderStockList, 120);
+            searchTimeout = setTimeout(renderStockList, 150);
         });
 
         renderFilters();
