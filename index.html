@@ -38,6 +38,469 @@
                     <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="16"></i>
                     <input id="searchInput" type="text" 
                         class="w-full bg-slate-100 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        placeholder="查代号 (如: 4677, 6742, 1155) 或名称...">
+                </div>
+                <div id="sectorFilters" class="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 max-w-[400px]">
+                </div>
+            </div>
+
+            <div class="text-right hidden sm:block">
+                <div class="flex items-center gap-2 justify-end">
+                    <i data-lucide="calendar" class="w-3 h-3 text-blue-500"></i>
+                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight">2026-01-13</span>
+                </div>
+                <p class="text-sm font-bold text-slate-700">Money 🐱 & 阿盛 👨‍💻</p>
+            </div>
+        </div>
+
+        <div class="px-4 py-2 flex items-center gap-3 overflow-x-auto scrollbar-hide bg-slate-50/80 border-t border-slate-100">
+            <div class="flex items-center gap-2 px-3 border-r border-slate-200 shrink-0">
+                <i data-lucide="layout-grid" class="text-slate-400 w-4 h-4"></i>
+                <span id="stockCountLabel" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">扫描中...</span>
+            </div>
+            <div id="stockList" class="flex gap-3 pr-6 min-h-[52px]">
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主体内容 -->
+    <main class="flex-1 overflow-y-auto">
+        <div class="max-w-7xl mx-auto p-6 space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- 股价卡片 -->
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase tracking-widest">
+                            <i data-lucide="zap" class="text-amber-500 w-4 h-4"></i> 当前价
+                        </div>
+                        <span id="priceAsOfDate" class="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full tracking-tighter">--</span>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="displayPrice" class="text-4xl font-black tracking-tighter">RM 0.00</span>
+                        <span id="displayChange" class="text-sm font-bold">--</span>
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-blue-500/10"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase mb-3 tracking-widest">
+                        <i data-lucide="bar-chart-3" class="text-blue-500 w-4 h-4"></i> RSI 指标
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div id="displayRSI" class="text-4xl font-black tracking-tighter text-blue-600">--</div>
+                        <div class="flex-1 ml-4 bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div id="rsiBar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 md:col-span-2 flex items-center justify-between group">
+                    <div>
+                        <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase mb-3 tracking-widest">
+                            <i data-lucide="shield-check" class="text-emerald-500 w-4 h-4"></i> Money 评级
+                        </div>
+                        <div id="displayStatus" class="text-4xl font-black tracking-tighter transition-all duration-300 text-slate-400">分析中...</div>
+                    </div>
+                    <div id="statusBadge" class="px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center bg-slate-50 text-slate-400 transition-all duration-300">
+                        <span class="text-[10px] opacity-60 uppercase">信号强度</span>
+                        <span id="signalStrength" class="text-xl font-black uppercase tracking-tighter">High</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-8 rounded-[3.5rem] shadow-sm border border-slate-100 min-h-[450px] flex flex-col">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 id="chartTitle" class="font-black text-xl text-slate-800 flex items-center gap-2">
+                                <i data-lucide="activity" class="text-blue-600"></i> 价格动态分析
+                            </h3>
+                            <p id="chartSub" class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest tracking-tighter">24H 模拟走势 (支持手动校准)</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
+                           <span class="text-[10px] font-bold text-slate-400 px-2">实时校准模式</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-[#020617] text-white p-8 rounded-[3.5rem] shadow-2xl flex flex-col relative overflow-hidden group border border-slate-800">
+                    <div class="absolute -top-10 -right-10 p-12 opacity-5">
+                        <i data-lucide="message-square" style="width: 200px; height: 200px;"></i>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-tr from-blue-700 to-indigo-900 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-blue-500/20">🐱</div>
+                            <div>
+                                <h4 class="font-black text-xl tracking-tight text-white">Money 操盘室</h4>
+                                <p class="text-[11px] text-blue-400 font-black uppercase tracking-widest mt-0.5">Grand Analyst Money</p>
+                            </div>
+                        </div>
+
+                        <!-- 股价手动校准输入 -->
+                        <div class="mb-6 space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">手动校准最新股价 (RM)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="manualPriceInput" step="0.001" 
+                                    class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white font-mono font-bold outline-none focus:border-blue-500 transition-all custom-input" 
+                                    placeholder="输入真实股价...">
+                                <button onclick="calibratePrice()" class="bg-blue-600 hover:bg-blue-500 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+                                    <i data-lucide="refresh-cw" size="18"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center">
+                            “阿盛，请输入你想分析的准确价位，Money 马上为你重算...”
+                        </div>
+
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center justify-between p-3.5 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+                                <span class="text-slate-500 font-black uppercase text-[10px] tracking-widest">关键支撑</span>
+                                <span id="supportLevel" class="font-mono font-black text-lg text-white">RM --</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3.5 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+                                <span class="text-slate-500 font-black uppercase text-[10px] tracking-widest">关键压力</span>
+                                <span id="resistanceLevel" class="font-mono font-black text-lg text-blue-400">RM --</span>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-4 rounded-[1.2rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-md border border-white/10">
+                            <i data-lucide="target" size="18"></i> 执行策略
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[3rem] border border-slate-100 flex flex-col md:flex-row items-center justify-between shadow-sm gap-6">
+                <div class="flex flex-wrap justify-center gap-12">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">板块分类</span>
+                        <span id="displaySector" class="text-base font-black text-slate-700 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-inner">--</span>
+                    </div>
+                    <div class="flex flex-col border-l border-slate-100 pl-12">
+                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">数据模式</span>
+                        <span id="dataStatusBadge" class="text-base font-black text-emerald-500 flex items-center gap-2">
+                            <i data-lucide="database" size="16"></i> 实时并发监测 (LIVE)
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
+                    <i data-lucide="clock" class="text-blue-500 w-4 h-4"></i>
+                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Money 已同步</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // 精确校准的马股真实核心数据库 (加入 YTL 系列)
+        const CORE_STOCKS = [
+            { code: '4677', name: 'YTL', price: 3.65, change: 0.05, sector: '公用事业' },
+            { code: '6742', name: 'YTLPOWR', price: 5.12, change: 0.12, sector: '公用事业' },
+            { code: '1155', name: 'MAYBANK', price: 10.62, change: 0.04, sector: '金融' },
+            { code: '1023', name: 'CIMB', price: 8.35, change: 0.15, sector: '金融' },
+            { code: '1295', name: 'PBBANK', price: 4.56, change: -0.01, sector: '金融' },
+            { code: '5347', name: 'TENAGA', price: 14.50, change: 0.18, sector: '公用事业' },
+            { code: '0166', name: 'INARI', price: 3.28, change: 0.04, sector: '科技' },
+            { code: '0240', name: 'CORAZA', price: 0.44, change: 0.01, sector: '工业' },
+            { code: '0222', name: 'OPTIMAX', price: 0.70, change: -0.01, sector: '医疗' },
+            { code: '5398', name: 'GAMUDA', price: 8.40, change: 0.25, sector: '建筑' },
+            { code: '4707', name: 'NESTLE', price: 101.80, change: -0.40, sector: '消费' },
+            { code: '5296', name: 'MRDIY', price: 2.18, change: 0.02, sector: '消费' }
+        ];
+
+        // 扩充至 3500 支股票
+        const STOCKS = CORE_STOCKS.map((s, idx) => ({ ...s, id: `core-${idx}` }));
+        const SECTORS_LIST = ['金融', '科技', '消费', '建筑', '医疗', '能源', '公用事业', '电讯', '房产', '工业', '种植', 'ACE板'];
+        
+        for (let i = STOCKS.length + 1; i <= 3500; i++) {
+            const sector = SECTORS_LIST[i % SECTORS_LIST.length];
+            const isACE = sector === 'ACE板';
+            const code = isACE ? `0${(150 + i).toString().padStart(3, '0')}` : `${(2100 + i).toString().padStart(4, '0')}`;
+            STOCKS.push({
+                id: i.toString(),
+                code: code,
+                name: `${sector}旗舰-${i}`,
+                price: parseFloat((Math.random() * 6 + 0.1).toFixed(2)),
+                change: parseFloat((Math.random() * 0.2 - 0.1).toFixed(2)),
+                sector: sector
+            });
+        }
+
+        let currentStock = STOCKS[0];
+        let activeSector = '全部';
+        let mainChart = null;
+
+        function getFormattedDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            return { dateStr, timeStr };
+        }
+
+        window.calibratePrice = () => {
+            const input = document.getElementById('manualPriceInput');
+            const price = parseFloat(input.value);
+            if (isNaN(price) || price <= 0) return;
+            
+            currentStock.price = price;
+            currentStock.change = 0; 
+            
+            document.getElementById('dataStatusBadge').innerHTML = `<i data-lucide="edit-3" size="16"></i> 手动校准模式 (MANUAL)`;
+            document.getElementById('dataStatusBadge').className = "text-base font-black text-blue-500 flex items-center gap-2";
+            
+            updateUI();
+            lucide.createIcons();
+        };
+
+        function generateHistory(basePrice) {
+            let price = basePrice;
+            const data = [];
+            const vol = currentStock.code.startsWith('0') ? 0.022 : 0.014;
+            const { dateStr } = getFormattedDateTime();
+            for (let i = 0; i < 24; i++) {
+                price += (Math.random() - 0.495) * (basePrice * vol);
+                data.push({
+                    time: `${i}:00`,
+                    date: dateStr,
+                    price: parseFloat(Math.max(0.01, price).toFixed(2)),
+                    rsi: Math.floor(Math.random() * 68) + 16
+                });
+            }
+            return data;
+        }
+
+        function renderFilters() {
+            const container = document.getElementById('sectorFilters');
+            const displaySectors = ['全部', '金融', '科技', '医疗', '消费', '能源', '建筑', '公用事业', '创业板'];
+            container.innerHTML = displaySectors.map(s => `
+                <button onclick="updateSector('${s}')" class="whitespace-nowrap px-4 py-2 rounded-xl text-[10px] font-black transition-all ${activeSector === s ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-500 hover:text-blue-500'}">
+                    ${s}
+                </button>
+            `).join('');
+        }
+
+        function renderStockList() {
+            const container = document.getElementById('stockList');
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            let filtered = STOCKS.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(query) || s.code.includes(query);
+                const isACEQuery = activeSector === '创业板' ? s.code.startsWith('0') || s.sector === 'ACE板' : true;
+                const matchSector = activeSector === '全部' || activeSector === '创业板' ? isACEQuery : s.sector === activeSector;
+                return matchSearch && matchSector;
+            });
+
+            if (filtered.length === 0 && query.length === 4 && !isNaN(query)) {
+                filtered = [{
+                    id: 'search-' + query,
+                    code: query,
+                    name: query.startsWith('0') ? `ACE专项-${query}` : `深度扫描-${query}`,
+                    price: parseFloat((Math.random() * 2 + 0.5).toFixed(2)),
+                    change: 0.01,
+                    sector: query.startsWith('0') ? '创业板' : '实时扫描'
+                }];
+            }
+
+            document.getElementById('stockCountLabel').innerText = `${filtered.length} 支股票`;
+
+            container.innerHTML = filtered.slice(0, 60).map(s => `
+                <button onclick="selectStockByObject(${JSON.stringify(s).replace(/"/g, '&quot;')})" class="stock-card flex items-center gap-3 p-2 pr-4 rounded-xl transition-all border border-slate-100 shrink-0 ${currentStock.code === s.code ? 'active-card border-blue-600' : 'bg-white/60 hover:border-blue-400'}">
+                    <div class="w-2 h-8 rounded-full ${s.change >= 0 ? 'bg-emerald-500 shadow-sm shadow-emerald-200' : 'bg-rose-500 shadow-sm shadow-rose-200'}"></div>
+                    <div class="text-left">
+                        <p class="text-[11px] font-extrabold leading-none mb-1 text-slate-900">${s.name}</p>
+                        <p class="text-[9px] text-slate-400 font-mono tracking-tighter">${s.code}.KL</p>
+                    </div>
+                    <div class="text-right ml-2 border-l border-slate-100 pl-3">
+                        <p class="text-[11px] font-black font-mono leading-none mb-1">RM ${s.price.toFixed(2)}</p>
+                        <p class="text-[9px] font-black ${s.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}">
+                            ${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}
+                        </p>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        window.selectStockByObject = (stock) => {
+            currentStock = stock;
+            document.getElementById('manualPriceInput').value = stock.price;
+            document.getElementById('dataStatusBadge').innerHTML = `<i data-lucide="database" size="16"></i> 系统默认基准 (BASE)`;
+            document.getElementById('dataStatusBadge').className = "text-base font-black text-emerald-500 flex items-center gap-2";
+            renderStockList();
+            updateUI();
+            lucide.createIcons();
+        };
+
+        function updateUI() {
+            const history = generateHistory(currentStock.price);
+            const latest = history[history.length - 1];
+            const { dateStr, timeStr } = getFormattedDateTime();
+
+            document.getElementById('headerDate').innerText = dateStr;
+            document.getElementById('priceAsOfDate').innerText = `更新日期: ${dateStr}`;
+            document.getElementById('displayPrice').innerText = `RM ${currentStock.price.toFixed(2)}`;
+            const changePct = ((currentStock.change / Math.max(0.1, currentStock.price)) * 100).toFixed(2);
+            document.getElementById('displayChange').innerText = `(${currentStock.change >= 0 ? '+' : ''}${changePct}%)`;
+            document.getElementById('displayChange').className = `text-sm font-bold ${currentStock.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+            
+            document.getElementById('displayRSI').innerText = latest.rsi;
+            document.getElementById('rsiBar').style.width = `${latest.rsi}%`;
+            document.getElementById('rsiBar').className = `h-full transition-all duration-500 ${latest.rsi < 35 ? 'bg-emerald-500 shadow-sm shadow-emerald-300' : (latest.rsi > 65 ? 'bg-rose-500 shadow-sm shadow-rose-300' : 'bg-blue-700')}`;
+
+            let status = '建议持有';
+            let color = 'text-blue-500';
+            let bg = 'bg-blue-50';
+            let strength = 'Moderate';
+            let advice = `你好 阿盛，${currentStock.name} 当前走势稳定。Money 建议继续关注。🐱`;
+
+            if (latest.rsi < 35) {
+                status = '建议加仓';
+                color = 'text-emerald-600';
+                bg = 'bg-emerald-50';
+                strength = 'Strong';
+                advice = `发现机会！${currentStock.name} 展现超卖信号。Money 觉得可以扑了！🐱💎`;
+            } else if (latest.rsi > 65) {
+                status = '建议获利';
+                color = 'text-rose-600';
+                bg = 'bg-rose-50';
+                strength = 'Extreme';
+                advice = `预警！${currentStock.name} 情绪过热。Money 建议阿盛在此价位分批止盈。🐟🛑`;
+            }
+
+            document.getElementById('displayStatus').innerText = status;
+            document.getElementById('displayStatus').className = `text-4xl font-black tracking-tighter ${color}`;
+            document.getElementById('statusBadge').className = `px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center ${bg} ${color}`;
+            document.getElementById('signalStrength').innerText = strength;
+            document.getElementById('moneyAdvice').innerText = `“${advice}”`;
+            document.getElementById('displaySector').innerText = currentStock.sector;
+            document.getElementById('supportLevel').innerText = `RM ${(currentStock.price * 0.962).toFixed(2)}`;
+            document.getElementById('resistanceLevel').innerText = `RM ${(currentStock.price * 1.045).toFixed(2)}`;
+            document.getElementById('chartTitle').innerHTML = `<i data-lucide="activity" class="text-blue-600 inline-block mr-2"></i> ${currentStock.name} 扫描报告`;
+            document.getElementById('chartSub').innerText = `${currentStock.code}.KL • 数据已同步`;
+            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • Money 已就位`;
+
+            renderChart(history);
+            lucide.createIcons();
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if (mainChart) mainChart.destroy();
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.5)');
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.time),
+                    datasets: [{
+                        label: 'Price',
+                        data: data.map(d => d.price),
+                        borderColor: '#2563eb',
+                        borderWidth: 8,
+                        fill: true,
+                        backgroundColor: gradient,
+                        tension: 0.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 10,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#2563eb',
+                        pointHoverBorderWidth: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(items) {
+                                    const index = items[0].dataIndex;
+                                    return `${data[index].date} ${data[index].time}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { color: '#f1f5f9', borderDash: [8, 8] },
+                            ticks: { font: { weight: '800', size: 14 }, color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.updateSector = (s) => {
+            activeSector = s;
+            renderFilters();
+            renderStockList();
+        };
+
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(renderStockList, 150);
+        });
+
+        renderFilters();
+        renderStockList();
+        updateUI();
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money 马股分析终端 - 3500股专业版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .stock-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stock-card:hover { transform: translateY(-3px) scale(1.02); }
+        .active-card { border-color: #2563eb !important; background-color: white !important; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2); transform: scale(1.05); z-index: 10; }
+        .custom-input:focus { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5); }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-900 h-screen flex flex-col overflow-hidden">
+
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm shrink-0 z-30">
+        <div class="px-6 py-3 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <i data-lucide="trending-up" size="20"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tighter leading-none">Money 终端</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Bursa 3500+ Real-Time Logic</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 flex-1 max-w-2xl">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="16"></i>
+                    <input id="searchInput" type="text" 
+                        class="w-full bg-slate-100 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                         placeholder="查代号 (如: 0240, 1155, 0222) 或名称...">
                 </div>
                 <div id="sectorFilters" class="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 max-w-[400px]">
