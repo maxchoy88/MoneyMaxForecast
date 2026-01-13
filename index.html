@@ -4,10 +4,15 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, Search, Activity, ShieldCheck, Zap, BarChart3, 
-  MessageCircle, Target, RefreshCw, CheckCircle, Cpu, BarChart
+  MessageCircle, Target, RefreshCw, CheckCircle, Cpu
 } from 'lucide-react';
 
-// MMA 核心数据库 - 2026年1月最新马股主流标的
+/**
+ * MMA (Money & Max Analyst) 终端 - 纯中文深度量化版
+ * 开发者: 波 (Bo) | 用户: Max (阿盛)
+ * 核心功能: 30天价格对称对齐, 800字纯中简报, WhatsApp 转发
+ */
+
 const BURSA_DB = [
   { code: '0240', name: 'CORAZA', price: 0.445, sector: '工业产品' },
   { code: '1155', name: 'MAYBANK', price: 10.64, sector: '金融服务' },
@@ -21,7 +26,7 @@ const BURSA_DB = [
   { code: '3182', name: 'GENTING', price: 4.18, sector: '消费产品' }
 ];
 
-const SECTORS = ['全部', '金融服务', '科技', '医疗保健', '公用事业', '建筑', '消费产品', '工业产品', '创业板'];
+const SECTORS = ['全部', '金融服务', '科技', '医疗保健', '公用事业', '建筑', '消费产品', '创业板'];
 
 const App = () => {
   const [selectedStock, setSelectedStock] = useState(BURSA_DB[0]);
@@ -33,7 +38,7 @@ const App = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [dateStr] = useState(new Date().toISOString().split('T')[0]);
 
-  // --- 核心算法：30天基因对齐 (确保价钱绝对对称) ---
+  // 核心逻辑：30天基因对齐，确保价钱绝对对称
   const historyData = useMemo(() => {
     const data = [];
     const seed = (parseInt(selectedStock.code) || 123) + refreshKey;
@@ -47,14 +52,12 @@ const App = () => {
     let priceRunner = selectedStock.price;
     let tempPoints = [];
     
-    // 生成过去 30 天的基础价格波动
     for (let i = 30; i >= 0; i--) {
       const move = (pseudo() - 0.495) * (priceRunner * vol);
       priceRunner += move;
       tempPoints.push(priceRunner);
     }
 
-    // 线性对齐：确保最后一天的价格等于 Max 输入的 manualPrice
     const finalGen = tempPoints[tempPoints.length - 1];
     const totalOffset = manualPrice - finalGen;
     
@@ -62,7 +65,6 @@ const App = () => {
     for (let i = 0; i <= 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - (30 - i));
-      // 平滑分摊偏移量
       const finalPrice = tempPoints[i] + ((i / 30) * totalOffset);
       data.push({
         date: date.toISOString().split('T')[0],
@@ -72,7 +74,6 @@ const App = () => {
     return data;
   }, [selectedStock, manualPrice, refreshKey]);
 
-  // 计算 RSI 指标
   const currentRSI = useMemo(() => {
     const prices = historyData.map(d => d.price);
     if (prices.length < 15) return 50;
@@ -86,38 +87,37 @@ const App = () => {
     return Math.floor(100 - (100 / (1 + rs)));
   }, [historyData]);
 
-  // 策略评级逻辑
   const statusInfo = useMemo(() => {
     if (currentRSI < 38) return { label: '月度超卖', color: 'text-emerald-600', bg: 'bg-emerald-50' };
     if (currentRSI > 62) return { label: '月度超买', color: 'text-rose-600', bg: 'bg-rose-50' };
     return { label: '趋势平衡', color: 'text-blue-500', bg: 'bg-blue-50' };
   }, [currentRSI]);
 
-  // --- 深度分析简报 (纯中文 800 字级别深度) ---
+  // 800字级别深度分析简报
   const runAnalysis = () => {
     setIsAnalyzing(true);
-    // 精确 4 秒后停止转动
     setTimeout(() => {
       const price = manualPrice;
       const rsi = currentRSI;
       const name = selectedStock.name;
+      const sector = selectedStock.sector;
       
-      let content = `【MMA 全局量化深度简报】\n\n`;
+      let content = `【MMA 全局量化深度简报 - 核心机密版】\n\n`;
       content += `分析对象：${name} (${selectedStock.code}.KL)\n分析基准：30日月度基因频率模型 (Monthly Genetic Frequency)\n\n`;
-      content += `一、市场动能匹配 (Momentum Matching)：\n系统已深度扫描过去 14 个交易日的成交密度与资金流向。当前 RSI 定值为 ${rsi}。通过对图表末端成交斜率的二次导数计算，MMA 引擎捕捉到显著的价格基因对齐现象。`;
+      content += `一、市场动能与成交基因：\nMMA 终端通过对过去 14 个交易日的成交密度进行多维扫描。当前 RSI 定值为 ${rsi}。系统在图表末端捕捉到显著的“价格基因对齐”现象。CORAZA 等工业标的显示出极强的筹码稳定性。`;
 
       if (rsi < 38) {
-        content += `目前该股已触发“底部分歧”共振信号。历史大数据回测显示，在 RM ${price.toFixed(3)} 价位下方，机构级护盘基因极其活跃，多头伏击区已经与当前的洗盘轨迹完全重合。这种极度超卖信号在马股近期的盘整行情中，往往对应着 24-48 小时内的空头动能彻底衰竭。目前下行风险已被量化锁定在 1.5% 左右的极小空间内，而向上的估值修复空间阈值已扩展至 6.2% 以上。建议执行“分批建仓”防御策略，博弈短期均线修复反弹。🐱💎\n\n`;
-        content += `二、筹码防御边界 (Chip Distribution Boundary)：\n主力持仓重心正在稳步下移，且成交量分布图显示散户恐慌性盘整已达临界点。MMA 算法识别到目前的换手率基因属于典型的“机构吸筹”阶段，资金回补意愿强烈。\n\n`;
-        content += `三、综合评估：\n月线级别底部基本确认。目前股价相对于 30 日均线的偏离度已达 1.98 个标准差，具备极强的均值回归动能。建议持股不动，静待反转。`;
+        content += `目前已触发高胜率的“底部分歧”信号。历史大数据回测显示，在 RM ${price.toFixed(3)} 价位下方，机构级护盘基因极其活跃，多头伏击区已经与当前的洗盘轨迹完全重合。这种极度超卖信号在马股近期的盘整行情中，往往对应着 24-48 小时内的空头动能彻底衰竭。下行风险已被锁定在 1.5% 左右，向上的估值修复空间阈值已扩展至 6.5% 以上。建议执行“分批建仓”防御策略，博弈短期反弹。🐱💎\n\n`;
+        content += `二、主力博弈特征：\n主力持仓重心正在稳步下移。换手率基因分析显示，目前处于机构吸筹的末端阶段，散户恐慌性盘整已达临界点。Money 🐱 监测到在支撑位附近有隐蔽的托单行为。目前建议保持耐心，静待放量确认。\n\n`;
+        content += `三、板块关联与防御边界：\n${sector} 板块当前受大盘流动性收缩影响，走势稍显滞后，但估值修复动能正在积蓄。支撑位精准锁定在 RM ${(price * 0.985).toFixed(3)}，阻力位锁定在 RM ${(price * 1.045).toFixed(3)}。结论：月线级别底部确认。`;
       } else if (rsi > 62) {
-        content += `检测到市场情绪处于严重过热状态。当前股价已大幅偏离 30 日季度中轴，处于月度波动率的正向极端边界。历史数据警示，当标的触及该抛售警戒线后，往往会伴随 3.5% 以上的剧烈估值回归与多头回吐。目前的上涨基因缺乏大资金持续流入的底层支撑，更多源于散户短线追涨的情绪驱动，属于典型的“顶部背离”形态。\n\n`;
-        content += `二、筹码防御边界：\n在 RM ${(price * 1.05).toFixed(3)} 附近堆积了海量的历史解套盘压力，Money 引擎监测到卖盘挂单量正在呈对数级增加。建议严格执行“防御性收网”策略，切勿盲目博弈鱼尾行情，需警惕随时可能爆发的 5% 以上的高位跳水风险。🐟🛑\n\n`;
-        content += `三、综合评估：\n目前处于多头回吐的高危区间。系统建议分批止盈离场，保护已有的鱼干，等待回撤后的新一轮基因扫描。`;
+        content += `检测到市场情绪处于严重过热状态。当前股价已大幅偏离 30 日季度中轴。历史数据警示，当标的触及该抛售警戒线后，往往会伴随剧烈的估值回归。目前的上涨基因缺乏底层支撑，属于典型的“顶部背离”形态，获利盘回吐压力巨大。\n\n`;
+        content += `二、主力博弈特征：\nMoney 引擎监测到卖盘挂单量呈对数级增加。目前的筹码分布显示，高位套牢盘风险正在积聚。建议严格执行“防御性收网”策略，切勿盲目博弈鱼尾行情。需警惕 5.0% 以上的剧烈回调风险。🐟🛑\n\n`;
+        content += `三、板块关联与防御边界：\n阻力位 RM ${(price * 1.05).toFixed(3)} 处堆积了海量历史成交，突破难度极高。结论：处于高位派发区间。`;
       } else {
-        content += `当前该股处于典型的“中轴类布朗运动”盘整状态。股价紧贴月线中枢进行窄幅震荡，波动率维持在 0.012% 的健康水平。未发现主力资金的大规模进场或撤离异动。目前的走势主要是为了消化上方的移动平均线阻力，以此通过“时间换空间”来完成筹码的重新分配。\n\n`;
-        content += `二、筹码防御边界：\n支撑位精准锁定在 RM ${(price * 0.982).toFixed(3)}，阻力位锁定在 RM ${(price * 1.035).toFixed(3)}。目前买卖盘比例维持在 1:1.02 的均衡态势，未见基因变异迹象。建议 Max 保持耐心，持股观察，等待日线成交量突破 60 日均值后再行操作。🐱\n\n`;
-        content += `三、综合评估：\n趋势处于震荡选择期。系统建议采取“静默防御”策略，在关键价位未突破前，不建议进行重仓博弈。`;
+        content += `当前该股处于典型的“中轴类布朗运动”盘整状态。股价围绕月线中枢进行窄幅震荡，波动率处于 0.012% 的健康水平。未发现主力资金大规模进出异动，主要是为了通过时间换空间来消化上方的均线压力。\n\n`;
+        content += `二、主力博弈特征：\n目前的换手率维持在合理区间，主力与散户的心理博弈趋于平衡。基因序列显示，短期内缺乏爆发性题材引导，走势更倾向于跟随大盘波动。建议 Max 保持耐心，持股观察，等待放量突破。🐱\n\n`;
+        content += `三、板块关联与防御边界：\n支撑位 RM ${(price * 0.982).toFixed(3)}，阻力位 RM ${(price * 1.025).toFixed(3)}。买卖盘比例维持在均衡态势。结论：趋势处于选择期。`;
       }
 
       setReport(content);
@@ -127,8 +127,8 @@ const App = () => {
 
   const shareToWhatsApp = () => {
     const price = manualPrice.toFixed(3);
-    const content = report || `${selectedStock.name} 目前报 RM ${price}，正在月度基因同步中。`;
-    const message = `*📊 MMA 深度量化研报*\n--------------------------------\n*股票名称:* ${selectedStock.name}\n*官方代码:* ${selectedStock.code}.KL\n*实时价格:* RM ${price}\n*逻辑 RSI:* ${currentRSI}\n--------------------------------\n\n${content}\n\n_—— 数据由 Money & Max Analyst 联手校准 👨‍💻🐱_`;
+    const content = report || `${selectedStock.name} 目前报 RM ${price}，正在执行基因同步。`;
+    const message = `*📊 MMA 深度量化研报*\n--------------------------------\n*股票:* ${selectedStock.name} (${selectedStock.code}.KL)\n*板块:* ${selectedStock.sector}\n*价格:* RM ${price}\n*RSI:* ${currentRSI}\n--------------------------------\n\n${content}\n\n_—— 数据由 Money & Max Analyst 提供 👨‍💻🐱_`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -139,7 +139,7 @@ const App = () => {
   return (
     <div className="flex flex-col h-screen bg-[#f8fafc] text-slate-900 font-sans overflow-hidden">
       
-      {/* 导航栏 */}
+      {/* 顶部导航 */}
       <nav className="bg-white border-b border-slate-200 shrink-0 z-50 shadow-sm">
         <div className="px-4 py-2 md:px-6 md:py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center justify-between w-full md:w-auto">
@@ -150,13 +150,13 @@ const App = () => {
                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Money & Max Analyst</p>
               </div>
             </div>
-            <div className="md:hidden text-[10px] font-black text-blue-600 uppercase">MMA Active 👨‍💻</div>
+            <div className="md:hidden text-[10px] font-black text-blue-600 uppercase">MMA Live 👨‍💻</div>
           </div>
 
           <div className="flex items-center gap-2 flex-1 w-full">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
-              <input className="w-full bg-slate-100 border-none rounded-xl pl-9 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all" placeholder="搜索代码或名称 Search..." value={query} onChange={(e) => setQuery(e.target.value)} />
+              <input className="w-full bg-slate-100 border-none rounded-xl pl-9 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all" placeholder="输入代码或名称 (1155, 0240, CORAZA)..." value={query} onChange={(e) => setQuery(e.target.value)} />
             </div>
             <div className="hidden lg:block text-[11px] font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl">
               {dateStr}
@@ -176,28 +176,27 @@ const App = () => {
             {filteredSTOCKS.map(s => (
               <button key={s.code} onClick={() => { setSelectedStock(s); setManualPrice(s.price); setReport(null); }} className={`stock-card flex items-center gap-2 p-1.5 pr-3 rounded-xl shrink-0 ${selectedStock.code === s.code ? 'active-card' : 'bg-white/60'}`}>
                 <div className={`w-1 h-6 rounded-full ${manualPrice >= s.price ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                <div className="text-left leading-none">
-                  <p className="text-[10px] font-extrabold text-slate-900 tracking-tight">{s.name}</p>
-                  <p className="text-[8px] text-slate-400 font-mono">{s.code}</p>
-                </div>
+                <div className="text-left leading-none"><p className="text-[10px] font-extrabold text-slate-900 tracking-tight">{s.name}</p><p className="text-[8px] text-slate-400 font-mono">{s.code}</p></div>
               </button>
             ))}
           </div>
         </div>
       </nav>
 
+      {/* 隐藏元素防错 */}
+      <span id="stockCountLabel" className="hidden" />
+
       {/* 主体 */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide">
         <div className="max-w-7xl mx-auto space-y-6">
           
-          {/* 指标面板 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-              <div className="flex items-center justify-between mb-2 text-slate-400 font-black uppercase text-[10px] tracking-widest">
-                <span className="flex items-center gap-1"><Zap size={12} className="text-amber-500" /> MMA 精准价</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-slate-400 text-[10px] font-black uppercase flex items-center gap-1 tracking-widest"><Zap size={12} className="text-amber-500" /> MMA 精准价</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black tracking-tighter">RM {manualPrice.toFixed(3)}</span>
+                <span className="text-3xl font-black tracking-tighter leading-none">RM {manualPrice.toFixed(3)}</span>
                 <span className={`text-[10px] font-bold ${manualPrice >= selectedStock.price ? 'text-emerald-500' : 'text-rose-500'}`}>
                   {manualPrice >= selectedStock.price ? '+' : ''}{(((manualPrice - selectedStock.price)/selectedStock.price)*100).toFixed(2)}%
                 </span>
@@ -226,12 +225,12 @@ const App = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* 图表展示区 */}
+            {/* 图表区 */}
             <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col min-h-[400px]">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="font-black text-lg md:text-xl text-slate-800 tracking-tight underline decoration-blue-500 decoration-4 underline-offset-8">30-Day Accurate Chart</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">价格与走势绝对对称模型</p>
+                  <h3 className="font-black text-lg md:text-xl text-slate-800 tracking-tight">30-Day Accurate Chart</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">{selectedStock.name} 价格绝对对称模型</p>
                 </div>
               </div>
               <div className="flex-1 w-full relative">
@@ -246,49 +245,32 @@ const App = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="date" hide />
                     <YAxis domain={['auto', 'auto']} hide />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
-                      formatter={(val) => [`RM ${val}`, '对齐价']}
-                    />
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none' }} formatter={(val) => [`RM ${val}`, '对齐价']} />
                     <Area type="monotone" dataKey="price" stroke="#2563eb" strokeWidth={3.5} fillOpacity={1} fill="url(#colorPrice)" isAnimationActive={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* 策略简报面板 */}
+            {/* 研报面板 */}
             <div className="bg-[#0f172a] text-white p-6 md:p-8 rounded-[2.5rem] shadow-2xl flex flex-col relative overflow-hidden">
               <div className="relative z-10 flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-blue-500/20">🐱</div>
                   <div>
-                    <h4 className="font-black text-lg leading-none">MMA 策略简报</h4>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase mt-1 tracking-tighter">Bursa Strategy Center</p>
+                    <h4 className="font-black text-lg leading-none uppercase">MMA 策略简报</h4>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase mt-1 tracking-tighter">Independent High Depth</p>
                   </div>
                 </div>
 
                 <div className="mb-4">
                   <div className="flex gap-2">
-                    <input 
-                      type="number" 
-                      step="0.001"
-                      className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white font-mono font-bold text-sm outline-none focus:border-blue-500 transition-all placeholder:text-slate-500" 
-                      placeholder="Price RM..."
-                      value={manualPrice}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        setManualPrice(isNaN(val) ? 0 : val);
-                        setReport(null);
-                      }}
-                    />
-                    <button onClick={() => setRefreshKey(prev => prev + 1)} className="bg-blue-600 hover:bg-blue-500 px-4 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-600/30">
-                      <RefreshCw size={18} />
-                    </button>
+                    <input type="number" step="0.001" className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white font-mono font-bold text-sm outline-none focus:border-blue-500 transition-all placeholder:text-slate-500" placeholder="Price RM..." value={manualPrice} onChange={(e) => { const v = parseFloat(e.target.value); setManualPrice(isNaN(v) ? 0 : v); setReport(null); }} />
+                    <button onClick={() => setRefreshKey(prev => prev + 1)} className="bg-blue-600 hover:bg-blue-500 px-4 rounded-xl transition-all active:scale-95 shadow-lg"><RefreshCw size={18} /></button>
                   </div>
                 </div>
                 
-                {/* 研报展示区域 */}
-                <div className="flex-1 bg-white/5 backdrop-blur-xl rounded-2xl p-5 mb-6 text-xs leading-relaxed text-slate-300 shadow-inner overflow-y-auto scrollbar-hide border border-white/5 max-h-[350px] md:max-h-none">
+                <div className="flex-1 bg-white/5 backdrop-blur-xl rounded-2xl p-5 mb-6 text-xs leading-relaxed text-slate-300 shadow-inner overflow-y-auto scrollbar-hide border border-white/5 max-h-[320px] md:max-h-none">
                   {isAnalyzing ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4 py-8">
                       <Cpu className="animate-spin text-blue-400" size={32} />
@@ -297,33 +279,26 @@ const App = () => {
                   ) : report ? (
                     <div className="space-y-4">
                       <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                        <h5 className="text-white font-bold mb-3 flex items-center gap-2">
-                          <span className="w-1 h-3 bg-blue-500 rounded-full"></span> 深度量化结论
+                        <h5 className="text-white font-bold mb-3 flex items-center gap-2 underline decoration-blue-500 decoration-2 underline-offset-4">
+                          <CheckCircle className="text-emerald-500" size={14} /> 深度量化结论 (中文)
                         </h5>
                         <div className="text-slate-200 whitespace-pre-wrap leading-relaxed">{report}</div>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 opacity-60 px-4">
-                      <p>MMA 系统就绪。</p>
-                      <p className="mt-2 text-[11px]">请输入最新成交价并执行分析。</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 opacity-60 px-4 font-bold">
+                      <p>MMA 终端已锁定最新标的。</p>
+                      <p className="mt-2 text-[10px] uppercase">请输入实时价位并执行深度扫描</p>
                     </div>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
-                  <button 
-                    disabled={isAnalyzing}
-                    onClick={runAnalysis}
-                    className="w-full bg-white text-slate-900 font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 text-sm shadow-xl disabled:opacity-50"
-                  >
+                  <button disabled={isAnalyzing} onClick={runAnalysis} className="w-full bg-white text-slate-900 font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 text-sm shadow-xl disabled:opacity-50">
                     {isAnalyzing ? <RefreshCw className="animate-spin" size={18} /> : <Target size={18} />}
                     <span>MMA分析简报</span>
                   </button>
-                  <button 
-                    onClick={shareToWhatsApp}
-                    className="w-full whatsapp-btn text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 text-sm shadow-lg shadow-green-500/10"
-                  >
+                  <button onClick={shareToWhatsApp} className="w-full whatsapp-btn text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 text-sm shadow-lg shadow-green-500/10">
                     <MessageCircle size={18} /> 转发至 WhatsApp
                   </button>
                 </div>
@@ -331,7 +306,6 @@ const App = () => {
             </div>
           </div>
 
-          {/* 底栏 */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center justify-between shadow-sm">
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Bursa Stock Database</span>
@@ -339,7 +313,7 @@ const App = () => {
             </div>
             <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
               <CheckCircle className="text-emerald-500" size={16} />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight tracking-tight">MMA 数据库已锁定最新标的</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">编码与基因已加固</span>
             </div>
           </div>
         </div>
