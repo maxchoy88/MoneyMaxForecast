@@ -1,275 +1,196 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line 
 } from 'recharts';
 import { 
-  TrendingUp, TrendingDown, Info, Search, PieChart, Activity, 
-  ArrowUpCircle, ArrowDownCircle, AlertCircle, Wallet
+  TrendingUp, Search, Activity, ArrowUpCircle, ArrowDownCircle, Info, Wallet, PieChart, AlertCircle
 } from 'lucide-react';
 
-// 模拟马股数据 (KLSE 示例)
-const MOCK_STOCKS = [
-  { id: 'MAYBANK', name: 'Maybank (1155)', price: 10.54, change: 0.02, sector: 'Financial Services' },
-  { id: 'PUBLICBANK', name: 'Public Bank (1295)', price: 4.50, change: -0.01, sector: 'Financial Services' },
-  { id: 'TENAGA', name: 'Tenaga Nasional (5347)', price: 14.20, change: 0.15, sector: 'Utilities' },
-  { id: 'IHH', name: 'IHH Healthcare (5225)', price: 7.15, change: 0.05, sector: 'Healthcare' },
-  { id: 'TOPGLOV', name: 'Top Glove (7113)', price: 1.12, change: -0.03, sector: 'Healthcare' },
+// Mock Data for Bursa Malaysia Stocks
+const STOCKS_DATA = [
+  { id: 'MAYBANK', code: '1155', name: 'Maybank', price: 10.54, change: 0.02, sector: 'Financial' },
+  { id: 'PBBANK', code: '1295', name: 'Public Bank', price: 4.50, change: -0.01, sector: 'Financial' },
+  { id: 'TENAGA', code: '5347', name: 'Tenaga Nasional', price: 14.20, change: 0.15, sector: 'Utilities' },
+  { id: 'IHH', code: '5225', name: 'IHH Healthcare', price: 7.15, change: 0.05, sector: 'Healthcare' },
+  { id: 'TOPGLOV', code: '7113', name: 'Top Glove', price: 1.12, change: -0.03, sector: 'Healthcare' },
 ];
 
 const App = () => {
-  const [selectedStock, setSelectedStock] = useState(MOCK_STOCKS[0]);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // 生成模拟的历史价格数据
-  const generateHistory = (basePrice) => {
-    let currentPrice = basePrice;
-    return Array.from({ length: 30 }).map((_, i) => {
-      const change = (Math.random() - 0.5) * (basePrice * 0.04);
-      currentPrice += change;
-      const rsi = 30 + Math.random() * 40; // 模拟 RSI
+  const [selectedStock, setSelectedStock] = useState(STOCKS_DATA[0]);
+  const [search, setSearch] = useState('');
+
+  // Generate mock history data based on selected stock
+  const chartData = useMemo(() => {
+    let base = selectedStock.price;
+    return Array.from({ length: 20 }).map((_, i) => {
+      const randomChange = (Math.random() - 0.48) * (base * 0.03);
+      base += randomChange;
       return {
-        date: `2025-12-${i + 1}`,
-        price: parseFloat(currentPrice.toFixed(2)),
-        ma20: parseFloat((currentPrice * 0.98 + Math.random()).toFixed(2)),
-        rsi: parseFloat(rsi.toFixed(2)),
+        day: `Day ${i + 1}`,
+        price: parseFloat(base.toFixed(2)),
+        ma20: parseFloat((base * (0.95 + Math.random() * 0.1)).toFixed(2)),
+        rsi: Math.floor(25 + Math.random() * 55)
       };
     });
+  }, [selectedStock]);
+
+  const latest = chartData[chartData.length - 1];
+
+  // Analysis logic
+  const getSignal = () => {
+    if (latest.rsi < 35) return { text: '建议买入', color: 'text-green-600', bg: 'bg-green-50', icon: ArrowUpCircle, desc: 'RSI显示超卖，股价处于低位，Money 觉得可以分批建仓。' };
+    if (latest.rsi > 65) return { text: '建议卖出', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowDownCircle, desc: 'RSI显示超买，获利了结压力大，Money 建议先落袋为安。' };
+    return { text: '继续持有', color: 'text-blue-600', bg: 'bg-blue-50', icon: Info, desc: '指标中性，趋势尚不明显，建议保持观察。' };
   };
 
-  const historyData = useMemo(() => generateHistory(selectedStock.price), [selectedStock]);
+  const signal = getSignal();
 
-  // 计算买卖信号逻辑
-  const analysis = useMemo(() => {
-    const last = historyData[historyData.length - 1];
-    const prev = historyData[historyData.length - 2];
-    
-    let signal = { type: 'HOLD', text: '观望', color: 'text-gray-500', bg: 'bg-gray-100', icon: Info };
-
-    // 简单逻辑：RSI 低于 30 (超卖) 或 价格站上 MA20 (金叉)
-    if (last.rsi < 35 || (last.price > last.ma20 && prev.price <= prev.ma20)) {
-      signal = { type: 'BUY', text: '建议买入', color: 'text-green-600', bg: 'bg-green-50', icon: ArrowUpCircle };
-    } 
-    // RSI 高于 70 (超买) 或 价格跌破 MA20 (死叉)
-    else if (last.rsi > 65 || (last.price < last.ma20 && prev.price >= prev.ma20)) {
-      signal = { type: 'SELL', text: '建议卖出', color: 'text-red-600', bg: 'bg-red-50', icon: ArrowDownCircle };
-    }
-
-    return { ...last, ...signal };
-  }, [historyData]);
-
-  const filteredStocks = MOCK_STOCKS.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    s.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filtered = STOCKS_DATA.filter(s => 
+    s.name.toLowerCase().includes(search.toLowerCase()) || s.code.includes(search)
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-slate-900">
       {/* Header */}
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <TrendingUp className="text-blue-600" />
-            Money 投资分析系统 (Bursa)
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <TrendingUp className="text-blue-600" /> Money 投资分析系统
           </h1>
-          <p className="text-slate-500 mt-1">你好 阿盛！Money 正在为你监控马股动态 🐱📈</p>
+          <p className="text-slate-500">阿盛，今天 Money 帮你盯着马股走势呢 🐱📊</p>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
           <input 
-            type="text"
-            placeholder="搜索股票代码或名称..."
-            className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+            placeholder="搜索代码或名称..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        {/* Watchlist Sidebar */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-500" /> 自选股关注
-            </h3>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Sidebar: Watchlist */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4" /> 市场监测
+            </h2>
             <div className="space-y-2">
-              {filteredStocks.map(stock => (
-                <button
+              {filtered.map(stock => (
+                <button 
                   key={stock.id}
                   onClick={() => setSelectedStock(stock)}
-                  className={`w-full text-left p-3 rounded-xl transition-all ${
-                    selectedStock.id === stock.id 
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-200' 
-                    : 'hover:bg-slate-50 text-slate-600'
-                  }`}
+                  className={`w-full flex justify-between items-center p-3 rounded-lg transition-all ${selectedStock.id === stock.id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-50'}`}
                 >
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium truncate">{stock.name}</span>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      selectedStock.id === stock.id ? 'bg-blue-500 text-white' : (stock.change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')
-                    }`}>
-                      {stock.change >= 0 ? '+' : ''}{stock.change}
-                    </span>
+                  <div className="text-left">
+                    <p className="font-bold text-sm">{stock.name}</p>
+                    <p className={`text-xs ${selectedStock.id === stock.id ? 'text-blue-100' : 'text-slate-400'}`}>{stock.code}.KL</p>
                   </div>
-                  <div className={`text-sm mt-1 ${selectedStock.id === stock.id ? 'text-blue-100' : 'text-slate-400'}`}>
-                    RM {stock.price}
+                  <div className="text-right text-sm">
+                    <p className="font-mono">RM {stock.price}</p>
+                    <p className={`text-xs ${stock.change >= 0 ? (selectedStock.id === stock.id ? 'text-white' : 'text-green-500') : (selectedStock.id === stock.id ? 'text-white' : 'text-red-500')}`}>
+                      {stock.change > 0 ? '+' : ''}{stock.change}
+                    </p>
                   </div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl text-white shadow-lg">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-white/20 p-2 rounded-lg text-2xl">🐱</div>
-              <div>
-                <p className="text-blue-100 text-xs uppercase tracking-wider font-bold">Money 的提示</p>
-                <p className="font-semibold">目前市场情绪</p>
+          {/* Money's Tips */}
+          <div className="bg-indigo-600 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">🐱</span>
+                <span className="font-bold">Money 的悄悄话</span>
               </div>
+              <p className="text-sm text-indigo-100 leading-relaxed">
+                阿盛，股市就像抓蝴蝶，不能急。现在的 RSI 是 {latest.rsi}，咱们稳扎稳打。
+              </p>
             </div>
-            <p className="text-sm text-blue-50 opacity-90 leading-relaxed">
-              阿盛，目前 {selectedStock.id} 的 RSI 是 {analysis.rsi}。记得遵循交易纪律，不要盲目追高喔！
-            </p>
+            <div className="absolute -right-4 -bottom-4 opacity-10 text-8xl font-bold italic">KLSE</div>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="lg:col-span-3 space-y-6">
-          
-          {/* Top Stats */}
+        {/* Main Panel */}
+        <div className="lg:col-span-9 space-y-6">
+          {/* Key Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="bg-blue-50 p-3 rounded-xl">
-                <Wallet className="text-blue-600" />
+            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <Wallet className="w-5 h-5 text-blue-500" />
+                <span className="text-slate-500 text-sm">当前股价</span>
               </div>
-              <div>
-                <p className="text-slate-400 text-sm">当前股价</p>
-                <p className="text-2xl font-bold text-slate-800">RM {selectedStock.price}</p>
-              </div>
+              <p className="text-2xl font-bold font-mono">RM {selectedStock.price}</p>
             </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="bg-purple-50 p-3 rounded-xl">
-                <PieChart className="text-purple-600" />
+            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <PieChart className="w-5 h-5 text-purple-500" />
+                <span className="text-slate-500 text-sm">RSI 强弱指标</span>
               </div>
-              <div>
-                <p className="text-slate-400 text-sm">RSI 指标 (30/70)</p>
-                <p className="text-2xl font-bold text-slate-800">{analysis.rsi}</p>
-              </div>
+              <p className="text-2xl font-bold font-mono">{latest.rsi}</p>
             </div>
-
-            <div className={`p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 ${analysis.bg}`}>
-              <div className={`p-3 rounded-xl bg-white`}>
-                <analysis.icon className={analysis.color} />
+            <div className={`p-6 rounded-xl border border-slate-100 shadow-sm transition-colors ${signal.bg}`}>
+              <div className="flex items-center gap-3 mb-2">
+                <signal.icon className={`w-5 h-5 ${signal.color}`} />
+                <span className="text-slate-500 text-sm">操作建议</span>
               </div>
-              <div>
-                <p className="text-slate-500 text-sm">系统信号</p>
-                <p className={`text-2xl font-bold ${analysis.color}`}>{analysis.text}</p>
-              </div>
+              <p className={`text-2xl font-bold ${signal.color}`}>{signal.text}</p>
             </div>
           </div>
 
-          {/* Chart Section */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                趋势分析 - {selectedStock.name}
-              </h3>
-              <div className="flex gap-2">
-                <span className="flex items-center gap-1 text-xs text-slate-500">
-                  <span className="w-3 h-3 bg-blue-500 rounded-full"></span> 价格
-                </span>
-                <span className="flex items-center gap-1 text-xs text-slate-500">
-                  <span className="w-3 h-3 bg-orange-400 rounded-full"></span> MA20
-                </span>
+          {/* Chart Card */}
+          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-lg">{selectedStock.name} ({selectedStock.code}) 趋势分析</h3>
+              <div className="flex gap-4 text-xs">
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-500"></span> 价格</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-orange-400 border-t border-dashed"></span> MA20</span>
               </div>
             </div>
-            
-            <div className="h-80 w-full">
+            <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={historyData}>
+                <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="date" hide />
-                  <YAxis domain={['auto', 'auto']} tick={{fontSize: 12, fill: '#94a3b8'}} />
+                  <XAxis dataKey="day" hide />
+                  <YAxis domain={['auto', 'auto']} tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   />
-                  <Area type="monotone" dataKey="price" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" />
-                  <Line type="monotone" dataKey="ma20" stroke="#fb923c" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                  <Area type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
+                  <Line type="monotone" dataKey="ma20" stroke="#fb923c" strokeWidth={1.5} dot={false} strokeDasharray="5 5" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Analysis Details */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-500" /> 分析诊断报告
+          {/* Analysis Detail */}
+          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+            <h3 className="font-bold flex items-center gap-2 mb-4 text-slate-800">
+              <AlertCircle className="w-5 h-5 text-amber-500" /> 技术分析诊断
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-2xl">
-                  <p className="font-semibold text-slate-700 mb-1">技术面总结</p>
-                  <p className="text-sm text-slate-500">
-                    当前价格为 RM {analysis.price}，MA20 位于 RM {analysis.ma20}。
-                    {analysis.price > analysis.ma20 ? '目前处于上升通道。' : '股价正面临下行压力。'}
-                  </p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-2xl">
-                  <p className="font-semibold text-slate-700 mb-1">RSI 状态</p>
-                  <div className="w-full bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
-                    <div 
-                      className={`h-full ${analysis.rsi > 70 ? 'bg-red-500' : (analysis.rsi < 30 ? 'bg-green-500' : 'bg-blue-500')}`} 
-                      style={{ width: `${analysis.rsi}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-2 text-right">数值: {analysis.rsi} ({analysis.rsi > 70 ? '超买' : (analysis.rsi < 30 ? '超卖' : '正常')})</p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className={`p-4 rounded-2xl border ${analysis.type === 'BUY' ? 'border-green-200 bg-green-50' : (analysis.type === 'SELL' ? 'border-red-200 bg-red-50' : 'border-slate-200')}`}>
-                  <p className="font-bold text-slate-800 mb-2">Money 的操作策略：</p>
-                  <ul className="text-sm space-y-2 text-slate-600">
-                    {analysis.type === 'BUY' && (
-                      <>
-                        <li className="flex gap-2">✅ RSI 指标显示市场情绪适中/偏低，具备反弹空间。</li>
-                        <li className="flex gap-2">✅ 股价放量站稳移动平均线，趋势向好。</li>
-                        <li className="font-bold text-green-700 underline">策略：分批买入，止损设在 RM {(analysis.price * 0.95).toFixed(2)}。</li>
-                      </>
-                    )}
-                    {analysis.type === 'SELL' && (
-                      <>
-                        <li className="flex gap-2">⚠️ 市场已进入局部超买区间，获利了结压力大。</li>
-                        <li className="flex gap-2">⚠️ 跌破关键支撑位，需防止深调。</li>
-                        <li className="font-bold text-red-700 underline">策略：减仓套现，保护本金。</li>
-                      </>
-                    )}
-                    {analysis.type === 'HOLD' && (
-                      <>
-                        <li className="flex gap-2">ℹ️ 股价正在横盘整理，方向不明朗。</li>
-                        <li className="flex gap-2">ℹ️ 成交量萎缩，建议继续观察。</li>
-                        <li className="font-bold text-slate-700 underline">策略：继续持股或空仓观望。</li>
-                      </>
-                    )}
-                  </ul>
-                </div>
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <p className="text-sm font-semibold text-slate-600 mb-2">Money 的详细诊断：</p>
+              <p className="text-slate-700 leading-relaxed italic">
+                “{signal.desc}”
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs text-slate-500">波动率: 正常</span>
+                <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs text-slate-500">成交量: 配合</span>
+                <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs text-slate-500">板块: {selectedStock.sector}</span>
               </div>
             </div>
           </div>
-
         </div>
-      </main>
-      
-      <footer className="max-w-7xl mx-auto mt-12 text-center text-slate-400 text-sm">
-        <p>© 2026 Money 投资助手 - 仅供阿盛 (Castor) 参考。股市有风险，入市需谨慎。</p>
-      </footer>
+      </div>
     </div>
   );
 };
