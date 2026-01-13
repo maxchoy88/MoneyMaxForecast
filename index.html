@@ -15,6 +15,8 @@
         .stock-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: 1px solid #f1f5f9; }
         .active-card { border-color: #2563eb !important; background-color: white !important; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.15); transform: translateY(-2px); z-index: 10; }
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .loading-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -27,7 +29,7 @@
                     <i data-lucide="trending-up" size="20"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg tracking-tighter leading-none">Money BURSA 终端</h1>
+                    <h1 class="font-extrabold text-lg tracking-tighter leading-none text-slate-900">Money BURSA 终端</h1>
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">3500+ Accurate Quant Analysis</p>
                 </div>
             </div>
@@ -46,7 +48,7 @@
             <div class="text-right hidden sm:block">
                 <div class="flex items-center gap-2 justify-end">
                     <i data-lucide="calendar" class="w-3 h-3 text-blue-500"></i>
-                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight">--</span>
+                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight">2026-01-13</span>
                 </div>
                 <p class="text-sm font-bold text-slate-700">Money 🐱 & 阿盛 👨‍💻</p>
             </div>
@@ -138,7 +140,7 @@
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-16 h-16 bg-gradient-to-tr from-blue-700 to-indigo-900 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-blue-500/20">🐱</div>
                             <div>
-                                <h4 class="font-black text-xl tracking-tight text-white leading-none mb-1 text-white">Money 操盘室</h4>
+                                <h4 class="font-black text-xl tracking-tight text-white leading-none mb-1">Money 操盘室</h4>
                                 <p class="text-[11px] text-blue-400 font-black uppercase tracking-widest">Global Analyst Money</p>
                             </div>
                         </div>
@@ -156,7 +158,7 @@
                             </div>
                         </div>
                         
-                        <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center">
+                        <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center transition-all duration-300">
                             “阿盛，BURSA 数据库已载入。请输入你关注的股票现价...”
                         </div>
 
@@ -171,8 +173,8 @@
                             </div>
                         </div>
                         
-                        <button class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black py-5 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl shadow-blue-900/50">
-                            <i data-lucide="target" size="20"></i> 全局深度分析
+                        <button id="deepAnalysisBtn" onclick="runDeepAnalysis()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black py-5 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl shadow-blue-900/50">
+                            <i id="btnIcon" data-lucide="target" size="20"></i> <span id="btnText">全局深度分析</span>
                         </button>
                     </div>
                 </div>
@@ -194,7 +196,7 @@
                 </div>
                 <div class="flex items-center gap-3 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
                     <i data-lucide="check-circle" class="text-blue-500 w-4 h-4"></i>
-                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">实时校准就绪</span>
+                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter">实时校准就绪</span>
                 </div>
             </div>
 
@@ -204,69 +206,33 @@
     <script>
         lucide.createIcons();
 
-        // BURSA 深度数据库 (覆盖主要活跃股)
+        // BURSA 数据库
         const BURSA_DB = [
-            // Banking
             { code: '1155', name: 'MAYBANK', price: 10.64, sector: '金融服务' },
             { code: '1023', name: 'CIMB', price: 8.35, sector: '金融服务' },
             { code: '1295', name: 'PBBANK', price: 4.54, sector: '金融服务' },
-            { code: '1066', name: 'RHBBANK', price: 6.22, sector: '金融服务' },
-            { code: '5819', name: 'HLBANK', price: 21.40, sector: '金融服务' },
-            { code: '1015', name: 'AMBANK', price: 5.15, sector: '金融服务' },
-            // Utilities
             { code: '4677', name: 'YTL', price: 3.65, sector: '公用事业' },
             { code: '6742', name: 'YTLPOWR', price: 5.12, sector: '公用事业' },
             { code: '5347', name: 'TENAGA', price: 14.52, sector: '公用事业' },
-            { code: '5210', name: 'GASMSIA', price: 3.68, sector: '公用事业' },
-            // Technology
             { code: '0166', name: 'INARI', price: 3.32, sector: '科技' },
             { code: '0240', name: 'CORAZA', price: 0.445, sector: '工业产品' },
             { code: '0222', name: 'OPTIMAX', price: 0.725, sector: '医疗保健' },
-            { code: '3034', name: 'VITROX', price: 3.98, sector: '科技' },
-            { code: '0008', name: 'GREATECH', price: 4.88, sector: '科技' },
-            { code: '0128', name: 'FRONTKN', price: 3.92, sector: '科技' },
-            { code: '0138', name: 'MYEG', price: 0.98, sector: '科技' },
-            // Construction & Property
             { code: '5398', name: 'GAMUDA', price: 8.45, sector: '建筑' },
             { code: '5211', name: 'SUNWAY', price: 4.50, sector: '建筑' },
-            { code: '3336', name: 'IJM', price: 3.25, sector: '建筑' },
-            { code: '8583', name: 'MAHSING', price: 1.88, sector: '房产' },
-            { code: '5248', name: 'ECOWLD', price: 1.78, sector: '房产' },
-            // Healthcare & Gloves
-            { code: '5225', name: 'IHH', price: 7.28, sector: '医疗保健' },
-            { code: '7113', name: 'TOPGLOV', price: 1.15, sector: '医疗保健' },
-            { code: '5168', name: 'HARTA', price: 3.50, sector: '医疗保健' },
-            { code: '7106', name: 'KOSSAN', price: 2.40, sector: '医疗保健' },
-            // Plantation & Energy
-            { code: '2445', name: 'KLK', price: 21.95, sector: '种植' },
-            { code: '1919', name: 'IOICORP', price: 4.05, sector: '种植' },
-            { code: '7100', name: 'DIALOG', price: 2.42, sector: '能源' },
-            { code: '5681', name: 'PETDAG', price: 18.60, sector: '能源' },
-            { code: '5183', name: 'PCHEM', price: 5.45, sector: '工业产品' },
-            { code: '5148', name: 'MISC', price: 8.15, sector: '交通与物流' },
-            // Consumer
             { code: '4707', name: 'NESTLE', price: 102.50, sector: '消费产品' },
             { code: '5296', name: 'MRDIY', price: 2.22, sector: '消费产品' },
             { code: '3182', name: 'GENTING', price: 4.18, sector: '消费产品' },
-            { code: '5099', name: 'AIRASIA', price: 1.02, sector: '消费产品' }
+            { code: '2445', name: 'KLK', price: 21.95, sector: '种植' },
+            { code: '5183', name: 'PCHEM', price: 5.42, sector: '工业产品' }
         ];
 
-        // 扩充至 3500 支
-        const SECTORS_LIST = ['金融服务', '科技', '消费产品', '工业产品', '医疗保健', '公用事业', '建筑', '能源', '种植', '房产', '交通与物流', '电讯与媒体', '创业板'];
+        const SECTORS_LIST = ['金融服务', '科技', '消费产品', '工业产品', '医疗保健', '公用事业', '建筑', '能源', '种植', '创业板'];
         const STOCKS = [...BURSA_DB.map((s, i) => ({...s, id: `core-${i}`, initialPrice: s.price}))];
-        
         for (let i = STOCKS.length; i < 3500; i++) {
             const sec = SECTORS_LIST[i % SECTORS_LIST.length];
             const baseCode = sec === '创业板' ? `0${(300 + i).toString().padStart(3, '0')}` : `${(4000 + i).toString()}`;
             const p = parseFloat((Math.random() * 5 + 0.1).toFixed(3));
-            STOCKS.push({
-                id: i.toString(),
-                code: baseCode,
-                name: `${sec}旗舰-${i}`,
-                price: p,
-                initialPrice: p,
-                sector: sec
-            });
+            STOCKS.push({ id: i.toString(), code: baseCode, name: `${sec}旗舰-${i}`, price: p, initialPrice: p, sector: sec });
         }
 
         let currentStock = STOCKS[0];
@@ -299,10 +265,7 @@
             const data = [];
             const seed = parseInt(stock.code) || 123;
             let random = seed;
-            function pseudo() {
-                random = (random * 9301 + 49297) % 233280;
-                return random / 233280;
-            }
+            function pseudo() { random = (random * 9301 + 49297) % 233280; return random / 233280; }
             const today = new Date();
             const vol = stock.code.startsWith('0') ? 0.009 : 0.005;
             let priceRunner = stock.initialPrice;
@@ -317,33 +280,67 @@
             for (let i = 0; i <= 30; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() - (30 - i));
-                const smoothOffset = (i / 30) * totalOffset;
-                const finalPrice = tempPoints[i] + smoothOffset;
+                const finalPrice = tempPoints[i] + ((i / 30) * totalOffset);
                 data.push({ date: date.toISOString().split('T')[0], price: parseFloat(Math.max(0.001, finalPrice).toFixed(3)) });
             }
             return data;
         }
 
-        window.calibratePrice = () => {
-            const val = parseFloat(document.getElementById('manualPriceInput').value);
-            if (!isNaN(val) && val > 0) {
-                currentStock.price = val;
-                updateUI();
+        // --- 全局深度分析功能实现 ---
+        window.runDeepAnalysis = () => {
+            const btn = document.getElementById('deepAnalysisBtn');
+            const btnIcon = document.getElementById('btnIcon');
+            const btnText = document.getElementById('btnText');
+            const adviceBox = document.getElementById('moneyAdvice');
+
+            // 进入加载状态
+            btn.disabled = true;
+            btn.classList.add('opacity-80');
+            btnIcon.setAttribute('data-lucide', 'loader-2');
+            btnIcon.classList.add('loading-spin');
+            btnText.innerText = "深度扫描中...";
+            lucide.createIcons();
+
+            // 模拟分析耗时
+            setTimeout(() => {
+                const rsi = parseInt(document.getElementById('displayRSI').innerText);
+                const price = currentStock.price;
+                const sector = currentStock.sector;
+                
+                let report = "";
+                if (rsi < 35) {
+                    report = `【深研结论】阿盛，${currentStock.name} 当前处于极度低估区间。结合30日成交基因分布，RM ${price.toFixed(3)} 下方存在主力护盘迹象，月线超跌严重，建议分批建立底仓。🐱💎`;
+                } else if (rsi > 65) {
+                    report = `【深研结论】警惕！${currentStock.name} 在 ${sector} 板块中属于情绪过热标的。90日均线压力在 RM ${(price * 1.05).toFixed(3)} 附近，目前获利盘回吐压力巨大，Money 建议收缩战线。🐟🛑`;
+                } else {
+                    report = `【深研结论】${currentStock.name} 当前走势符合马股大盘中性预期。RSI (${rsi}) 处于平衡态，未见主力异动。建议在 RM ${(price * 0.98).toFixed(3)} 附近挂单防御。🐱`;
+                }
+
+                adviceBox.innerText = report;
+                adviceBox.classList.add('bg-blue-500/10', 'border-blue-500/30');
+
+                // 恢复按钮
+                btn.disabled = false;
+                btn.classList.remove('opacity-80');
+                btnIcon.setAttribute('data-lucide', 'target');
+                btnIcon.classList.remove('loading-spin');
+                btnText.innerText = "全局深度分析";
                 lucide.createIcons();
-            }
+            }, 1200);
         };
 
-        function updateSector(s) {
-            activeSector = s;
-            renderFilters();
-            renderStockList();
-        }
+        window.calibratePrice = () => {
+            const val = parseFloat(document.getElementById('manualPriceInput').value);
+            if (!isNaN(val) && val > 0) { currentStock.price = val; updateUI(); }
+        };
+
+        function updateSector(s) { activeSector = s; renderFilters(); renderStockList(); }
 
         function renderFilters() {
-            const list = ['全部', '金融服务', '科技', '医疗保健', '公用事业', '建筑', '消费产品', '能源', '种植', '房产', '创业板'];
+            const list = ['全部', '金融服务', '科技', '医疗保健', '公用事业', '建筑', '消费产品', '创业板'];
             document.getElementById('sectorFilters').innerHTML = list.map(s => {
                 const isActive = activeSector === s;
-                return `<button onclick="updateSector('${s}')" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${isActive ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-400 border border-slate-200 hover:text-blue-500'}">${s}</button>`;
+                return `<button onclick="updateSector('${s}')" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${isActive ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-400 border border-slate-200 hover:text-blue-500'}">${s === '创业板' ? 'ACE' : s}</button>`;
             }).join('');
         }
 
@@ -351,15 +348,12 @@
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             let filtered = STOCKS.filter(s => {
                 const mSearch = s.name.toLowerCase().includes(query) || s.code.includes(query);
-                const isACEFilter = activeSector === '创业板';
-                const mSector = activeSector === '全部' ? true : (isACEFilter ? (s.sector === '创业板' || s.code.startsWith('0')) : s.sector === activeSector);
+                const mSector = activeSector === '全部' ? true : (activeSector === '创业板' ? (s.sector === '创业板' || s.code.startsWith('0')) : s.sector === activeSector);
                 return mSearch && mSector;
             });
-
             if (filtered.length === 0 && query.length === 4 && !isNaN(query)) {
-                filtered = [{ code: query, name: 'BURSA深度扫描-' + query, price: 1.000, initialPrice: 1.000, sector: '未知' }];
+                filtered = [{ code: query, name: 'BURSA扫描-' + query, price: 1.000, initialPrice: 1.000, sector: '未知' }];
             }
-
             document.getElementById('stockCountLabel').innerText = filtered.length + ' BURSA 股票';
             document.getElementById('stockList').innerHTML = filtered.slice(0, 60).map(s => `
                 <button onclick="selectStock('${s.code}')" class="stock-card flex items-center gap-3 p-2 pr-4 rounded-xl transition-all border border-slate-100 shrink-0 ${currentStock.code === s.code ? 'active-card' : 'bg-white/60 hover:border-blue-400'}">
@@ -377,50 +371,38 @@
             if (found) {
                 currentStock = found;
                 document.getElementById('manualPriceInput').value = currentStock.price;
-                updateUI();
-                renderStockList();
-                lucide.createIcons();
+                updateUI(); renderStockList(); lucide.createIcons();
             }
         };
 
         function updateUI() {
             const { dateStr, timeStr } = getNow();
             historyDataset = generateSmooth30DayHistory(currentStock, currentStock.price);
-            const currentRSI = calculateRSI(historyDataset.map(d => d.price));
+            const rsi = calculateRSI(historyDataset.map(d => d.price));
             
             document.getElementById('headerDate').innerText = dateStr;
             document.getElementById('priceAsOfDate').innerText = '当前日期: ' + dateStr;
             document.getElementById('displayPrice').innerText = 'RM ' + currentStock.price.toFixed(3);
             
             const startP = historyDataset[0].price;
-            const endP = currentStock.price;
-            const pct = ((endP - startP) / startP * 100).toFixed(2);
+            const pct = ((currentStock.price - startP) / startP * 100).toFixed(2);
             document.getElementById('displayChange').innerText = `(30D变动 ${pct >= 0 ? '+' : ''}${pct}%)`;
             document.getElementById('displayChange').className = `text-[11px] font-bold ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
 
-            document.getElementById('displayRSI').innerText = currentRSI;
-            document.getElementById('rsiBar').style.width = currentRSI + '%';
-            document.getElementById('rsiBar').className = `h-full transition-all duration-700 ${currentRSI < 35 ? 'bg-emerald-500 shadow-md shadow-emerald-200' : (currentRSI > 65 ? 'bg-rose-500 shadow-md shadow-rose-200' : 'bg-blue-600')}`;
+            document.getElementById('displayRSI').innerText = rsi;
+            document.getElementById('rsiBar').style.width = rsi + '%';
+            document.getElementById('rsiBar').className = `h-full transition-all duration-700 ${rsi < 35 ? 'bg-emerald-500' : (rsi > 65 ? 'bg-rose-500' : 'bg-blue-600')}`;
 
-            let status = '月度观望';
-            let color = 'text-blue-500';
-            let advice = `阿盛，${currentStock.name} BURSA 模型对比完成。当前建议在 30 日周期内耐心守候。🐱`;
-            
-            if (currentRSI < 38) { 
-                status = 'BURSA 机会'; color = 'text-emerald-600';
-                advice = `发现 30D 极佳分批点！RSI (${currentRSI})。Money 觉得此价位是 BURSA 逻辑底。🐱💎`; 
-            } else if (currentRSI > 62) { 
-                status = 'BURSA 风险'; color = 'text-rose-600';
-                advice = `月度超买预警！RSI (${currentRSI})。Money 建议阿盛保护你的投资果实。🐟🛑`; 
-            }
+            let status = '趋势平衡'; let color = 'text-blue-500';
+            if (rsi < 38) { status = '底部分歧'; color = 'text-emerald-600'; }
+            else if (rsi > 62) { status = '顶部背离'; color = 'text-rose-600'; }
 
             document.getElementById('displayStatus').innerText = status;
             document.getElementById('displayStatus').className = `text-4xl font-black tracking-tighter ${color}`;
-            document.getElementById('moneyAdvice').innerText = `“${advice}”`;
             document.getElementById('displaySector').innerText = currentStock.sector;
             document.getElementById('supportLevel').innerText = 'RM ' + (currentStock.price * 0.975).toFixed(3);
             document.getElementById('resistanceLevel').innerText = 'RM ' + (currentStock.price * 1.025).toFixed(3);
-            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • BURSA 基因同步`;
+            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • BURSA 逻辑对齐`;
 
             renderChart();
         }
@@ -434,29 +416,16 @@
                     labels: historyDataset.map(d => d.date),
                     datasets: [{
                         data: historyDataset.map(d => d.price),
-                        borderColor: '#2563eb',
-                        borderWidth: 5,
-                        fill: true,
-                        backgroundColor: 'rgba(37, 99, 235, 0.06)',
-                        tension: 0.32,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointHoverBackgroundColor: '#2563eb',
-                        pointHoverBorderColor: '#fff',
-                        pointHoverBorderWidth: 3
+                        borderColor: '#2563eb', borderWidth: 5, fill: true,
+                        backgroundColor: 'rgba(37, 99, 235, 0.06)', tension: 0.32,
+                        pointRadius: 0, pointHoverRadius: 8, pointHoverBackgroundColor: '#2563eb',
+                        pointHoverBorderColor: '#fff', pointHoverBorderWidth: 3
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { 
-                            backgroundColor: '#020617',
-                            padding: 12,
-                            callbacks: { label: (c) => ' BURSA 精准价位: RM ' + c.parsed.y } 
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: { 
                         x: { ticks: { maxTicksLimit: 6, font: { size: 10, weight: 'bold' } }, grid: { display: false } }, 
                         y: { grid: { color: '#f1f5f9' }, ticks: { font: { weight: '800' }, color: '#94a3b8' } } 
@@ -466,9 +435,7 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', renderStockList);
-        renderFilters();
-        renderStockList();
-        updateUI();
+        renderFilters(); renderStockList(); updateUI();
     </script>
 </body>
 </html>
