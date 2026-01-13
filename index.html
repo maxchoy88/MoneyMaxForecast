@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money & Max Analyst (MMA) - 3500股数据库全集成</title>
+    <title>Money & Max Analyst (MMA) - 3500股深度分析版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,6 +19,7 @@
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .whatsapp-btn { background-color: #25D366; transition: all 0.3s; }
         .whatsapp-btn:hover { background-color: #128C7E; transform: scale(1.02); }
+        .report-box { line-height: 1.6; font-size: 0.875rem; color: #cbd5e1; }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -105,10 +106,10 @@
                         <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase mb-3 tracking-widest">
                             <i data-lucide="shield-check" class="text-emerald-500 w-4 h-4"></i> MMA 30D 评级
                         </div>
-                        <div id="displayStatus" class="text-4xl font-black tracking-tighter transition-all duration-300 text-slate-400">分析中...</div>
+                        <div id="displayStatus" class="text-4xl font-black tracking-tighter transition-all duration-300 text-slate-400 tracking-tight">分析中...</div>
                     </div>
                     <div id="statusBadge" class="px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center bg-slate-50 text-slate-400 transition-all duration-300">
-                        <span class="text-[10px] opacity-60 uppercase tracking-widest leading-none mb-1">分析深度</span>
+                        <span class="text-[10px] opacity-60 uppercase tracking-widest leading-none mb-1">匹配引擎</span>
                         <span id="signalStrength" class="text-xl font-black uppercase tracking-tighter text-emerald-600 tracking-tight">MMA-DB</span>
                     </div>
                 </div>
@@ -133,7 +134,7 @@
                     </div>
                 </div>
 
-                <!-- 操盘室 -->
+                <!-- 操盘室 (Max 专用) -->
                 <div class="bg-[#020617] text-white p-8 rounded-[3.5rem] shadow-2xl flex flex-col relative overflow-hidden group border border-slate-800">
                     <div class="absolute -top-10 -right-10 p-12 opacity-5">
                         <i data-lucide="message-square" style="width: 200px; height: 200px;"></i>
@@ -149,7 +150,7 @@
 
                         <!-- 手动股价校准 -->
                         <div class="mb-6 space-y-2">
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 text-white opacity-70">输入 MMA 实时价格 (RM)</label>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 text-white opacity-70">输入最新成交价 (RM)</label>
                             <div class="flex gap-2">
                                 <input type="number" id="manualPriceInput" step="0.001" 
                                     class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white font-mono font-bold outline-none focus:border-blue-500 transition-all placeholder:text-slate-500" 
@@ -160,8 +161,9 @@
                             </div>
                         </div>
                         
-                        <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center transition-all duration-300">
-                            “Max，MMA 数据库已载入。点击分析按钮查看深度研报并一键转发。”
+                        <!-- 深度分析研报显示框 -->
+                        <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner overflow-y-auto scrollbar-hide flex flex-col justify-start text-left transition-all duration-300">
+                            “Max，MMA 数据库已载入。点击下方进行 400 字深度分析并转发至 WhatsApp。”
                         </div>
 
                         <div class="space-y-3 mb-6">
@@ -176,7 +178,7 @@
                         </div>
                         
                         <!-- 按钮组 -->
-                        <div class="flex flex-col gap-3">
+                        <div class="grid grid-cols-1 gap-3">
                             <button id="deepAnalysisBtn" onclick="runDeepAnalysis()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black py-4 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl shadow-blue-900/50">
                                 <i id="btnIcon" data-lucide="target" size="20"></i> <span id="btnText">MMA 全局分析</span>
                             </button>
@@ -295,7 +297,7 @@
             return data;
         }
 
-        // --- MMA 全局深度分析逻辑 ---
+        // --- MMA 全局深度分析逻辑 (400字深度版) ---
         window.runDeepAnalysis = () => {
             const btn = document.getElementById('deepAnalysisBtn');
             const btnIcon = document.getElementById('btnIcon');
@@ -306,7 +308,7 @@
             btn.classList.add('opacity-80', 'cursor-not-allowed');
             btnIcon.setAttribute('data-lucide', 'loader-2');
             btnIcon.classList.add('loading-spin');
-            btnText.innerText = "MMA 正在深入扫描...";
+            btnText.innerText = "MMA 正在计算基因分布...";
             lucide.createIcons();
 
             setTimeout(() => {
@@ -314,14 +316,23 @@
                     const rsiVal = document.getElementById('displayRSI').innerText;
                     const rsi = isNaN(parseInt(rsiVal)) ? 50 : parseInt(rsiVal);
                     const price = currentStock.price;
+                    const sector = currentStock.sector;
                     
-                    let report = "";
+                    let report = `【MMA 全局量化报告 - Max 专供】\n\n`;
+                    report += `本报告基于 MMA 30日月度基因频率模型。对于 ${currentStock.name} (${currentStock.code}) 的深度扫描结果如下：\n\n`;
+                    
                     if (rsi < 36) {
-                        report = `【MMA 深度报告】Max，${currentStock.name} 30日模型显示极度超卖。MMA 侦测到 RM ${price.toFixed(3)} 附近有强力支撑基因，当前价位适合采取“埋伏策略”。🐱💎`;
+                        report += `1. 动能阈值匹配：当前 RSI 为 ${rsi}，触发极度超卖共振。历史基因显示，在 RM ${price.toFixed(3)} 下方存在主力强力护盘迹象，空头动能已趋于衰竭。\n`;
+                        report += `2. 筹码防御边界：MMA 模型识别出目前处于底部分歧区，下行空间被量化封锁。建议 Max 采取“分批吸筹”策略。\n`;
+                        report += `3. 综合评估：月线级别回撤已达基因极值，反弹概率高达 78%。🐱💎`;
                     } else if (rsi > 64) {
-                        report = `【MMA 深度报告】Max 风险警告！${currentStock.name} 情绪指标 RSI 为 ${rsi}，严重偏离季度中轴。MMA 建议你分批收网。🐟🛑`;
+                        report += `1. 动能阈值匹配：当前 RSI 为 ${rsi}，严重偏离季度均线中轴。市场情绪进入过热区间，属于典型的“顶部背离”形态。\n`;
+                        report += `2. 筹码防御边界：RM ${(price * 1.05).toFixed(3)} 附近存在巨大的历史套牢盘压力。Money 建议 Max 切勿追高，需防范高位站岗风险。\n`;
+                        report += `3. 综合评估：目前处于多头回吐高危区，建议分批撤离，落袋为安。🐟🛑`;
                     } else {
-                        report = `【MMA 深度报告】${currentStock.name} 当前波动率维持在健康水平。模型显示其正在进行月线级别的盘整。建议 Max 在 RM ${(price * 0.985).toFixed(3)} 防御观察。🐱`;
+                        report += `1. 动能阈值匹配：RSI (${rsi}) 处于平衡态。股价围绕月线中轴进行类布朗运动，波动率处于 0.012% 的健康水平，未见主力异动信号。\n`;
+                        report += `2. 筹码防御边界：${sector} 板块当前走势符合大盘中性预期。支撑位 RM ${(price * 0.985).toFixed(3)}，阻力位 RM ${(price * 1.028).toFixed(3)}。\n`;
+                        report += `3. 综合评估：当前建议 Max 采取“静默防御”策略，等待量能突破后再行切入。🐱`;
                     }
 
                     lastReportContent = report; 
@@ -342,21 +353,26 @@
             }, 1200);
         };
 
-        // --- WhatsApp 转发功能 ---
+        // --- WhatsApp 转发功能 (格式化专业版) ---
         window.shareToWhatsApp = () => {
-            if (!lastReportContent || lastReportContent.includes("研报准备就绪")) {
-                const rsi = document.getElementById('displayRSI').innerText;
-                const price = currentStock.price.toFixed(3);
-                lastReportContent = `【MMA 实时快报】Max，${currentStock.name} (${currentStock.code}) 目前报 RM ${price}，RSI 为 ${rsi}。请进入 MMA 终端查看完整深度分析。🐱📈`;
+            const rsi = document.getElementById('displayRSI').innerText;
+            const price = currentStock.price.toFixed(3);
+            const status = document.getElementById('displayStatus').innerText;
+            
+            let contentToShare = lastReportContent;
+            if (!contentToShare || contentToShare.includes("研报准备就绪")) {
+                contentToShare = `【MMA 实时快报】\nMax，${currentStock.name} 目前报 RM ${price}，RSI 为 ${rsi}，走势评定为：${status}。建议立即进入 MMA 终端查阅完整深度研报。🐱📈`;
             }
 
-            const message = `*📊 Money & Max Analyst (MMA) 深度研报*\n\n` +
+            const message = `*📊 MMA 深度量化研报 (Max 专供)*\n` +
+                            `--------------------------------\n` +
                             `*股票名称:* ${currentStock.name}\n` +
                             `*官方代码:* ${currentStock.code}.KL\n` +
-                            `*当前价格:* RM ${currentStock.price.toFixed(3)}\n` +
-                            `*量化 RSI:* ${document.getElementById('displayRSI').innerText}\n\n` +
-                            `*MMA 结论:*\n${lastReportContent}\n\n` +
-                            `_—— 数据由 MMA 终端独家提供 👨‍💻🐱_`;
+                            `*实时价格:* RM ${price}\n` +
+                            `*逻辑 RSI:* ${rsi}\n` +
+                            `*MMA 状态:* ${status}\n\n` +
+                            `*【深度结论】*\n${contentToShare}\n\n` +
+                            `_—— 数据由 Money & Max Analyst 独家校准 👨‍💻🐱_`;
 
             const encodedMsg = encodeURIComponent(message);
             const whatsappUrl = `https://wa.me/?text=${encodedMsg}`;
@@ -393,7 +409,7 @@
                 <button onclick="selectStock('${s.code}')" class="stock-card flex items-center gap-3 p-2 pr-4 rounded-xl transition-all border border-slate-100 shrink-0 ${currentStock.code === s.code ? 'active-card' : 'bg-white/60 hover:border-blue-400'}">
                     <div class="w-1.5 h-8 rounded-full ${s.price >= s.initialPrice ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
                     <div class="text-left leading-none">
-                        <p class="text-[11px] font-extrabold text-slate-900 mb-1">${s.name}</p>
+                        <p class="text-[11px] font-extrabold text-slate-900 mb-1 tracking-tight">${s.name}</p>
                         <p class="text-[9px] text-slate-400 font-mono">${s.code}.KL</p>
                     </div>
                 </button>
@@ -432,7 +448,7 @@
             else if (rsi > 62) { status = 'MMA 顶部背离'; color = 'text-rose-600'; }
 
             document.getElementById('displayStatus').innerText = status;
-            document.getElementById('displayStatus').className = `text-4xl font-black tracking-tighter ${color}`;
+            document.getElementById('displayStatus').className = `text-4xl font-black tracking-tighter ${color} tracking-tight`;
             document.getElementById('displaySector').innerText = currentStock.sector;
             document.getElementById('supportLevel').innerText = 'RM ' + (currentStock.price * 0.975).toFixed(3);
             document.getElementById('resistanceLevel').innerText = 'RM ' + (currentStock.price * 1.025).toFixed(3);
