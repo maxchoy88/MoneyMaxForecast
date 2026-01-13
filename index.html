@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money BURSA 终端 - 3500股数据库全集成</title>
+    <title>Money & Max Analyst (MMA) - 3500股数据库全集成</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -31,8 +31,8 @@
                     <i data-lucide="trending-up" size="20"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg tracking-tighter leading-none text-slate-900">Money BURSA 终端</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">3500+ Accurate Quant Analysis</p>
+                    <h1 class="font-extrabold text-lg tracking-tighter leading-none text-slate-900 uppercase">MMA 终端</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Money & Max Analyst</p>
                 </div>
             </div>
 
@@ -41,7 +41,7 @@
                     <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400 w-4 h-4"></i>
                     <input id="searchInput" type="text" 
                         class="w-full bg-slate-100 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                        placeholder="搜索 BURSA 代码 (1155, 4677, 0240...) 或名称...">
+                        placeholder="搜索 MMA 数据库股票代码或名称...">
                 </div>
                 <div id="sectorFilters" class="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 max-w-[360px]">
                 </div>
@@ -50,9 +50,9 @@
             <div class="text-right hidden sm:block">
                 <div class="flex items-center gap-2 justify-end">
                     <i data-lucide="calendar" class="w-3 h-3 text-blue-500"></i>
-                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight tracking-tighter">2026-01-13</span>
+                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight">--</span>
                 </div>
-                <p class="text-sm font-bold text-slate-700">Money 🐱 & 阿盛 👨‍💻</p>
+                <p class="text-sm font-bold text-slate-700 uppercase">Money 🐱 & Max 👨‍💻</p>
             </div>
         </div>
 
@@ -75,7 +75,7 @@
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase tracking-widest">
-                            <i data-lucide="zap" class="text-amber-500 w-4 h-4"></i> BURSA 现价
+                            <i data-lucide="zap" class="text-amber-500 w-4 h-4"></i> MMA 现价
                         </div>
                         <span id="priceAsOfDate" class="text-[9px] font-bold bg-blue-50 text-blue-500 px-2 py-0.5 rounded-full">--</span>
                     </div>
@@ -103,13 +103,13 @@
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 md:col-span-2 flex items-center justify-between group">
                     <div>
                         <div class="flex items-center gap-2 text-slate-400 text-[11px] font-black uppercase mb-3 tracking-widest">
-                            <i data-lucide="shield-check" class="text-emerald-500 w-4 h-4"></i> Money 30D 评级
+                            <i data-lucide="shield-check" class="text-emerald-500 w-4 h-4"></i> MMA 30D 评级
                         </div>
                         <div id="displayStatus" class="text-4xl font-black tracking-tighter transition-all duration-300 text-slate-400">分析中...</div>
                     </div>
                     <div id="statusBadge" class="px-6 py-4 rounded-3xl font-black text-sm shadow-inner flex flex-col items-center bg-slate-50 text-slate-400 transition-all duration-300">
                         <span class="text-[10px] opacity-60 uppercase tracking-widest leading-none mb-1">分析深度</span>
-                        <span id="signalStrength" class="text-xl font-black uppercase tracking-tighter text-emerald-600">BURSA-DB</span>
+                        <span id="signalStrength" class="text-xl font-black uppercase tracking-tighter text-emerald-600 tracking-tight">MMA-DB</span>
                     </div>
                 </div>
             </div>
@@ -120,12 +120,12 @@
                     <div class="flex items-center justify-between mb-8">
                         <div>
                             <h3 id="chartTitle" class="font-black text-xl text-slate-800 flex items-center gap-2">
-                                <i data-lucide="activity" class="text-blue-600 w-5 h-5"></i> 30天精准量化分析
+                                <i data-lucide="activity" class="text-blue-600 w-5 h-5"></i> 30天精准量化走势
                             </h3>
-                            <p id="chartSub" class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-tighter tracking-widest">BURSA 实时基因对齐引擎</p>
+                            <p id="chartSub" class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-tighter tracking-widest">MMA 实时基因对齐引擎</p>
                         </div>
                         <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 hidden sm:block">
-                            <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Quant Analysis Mode</span>
+                            <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">MMA Quant Mode</span>
                         </div>
                     </div>
                     <div class="flex-1 relative min-h-[280px]">
@@ -142,14 +142,14 @@
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-16 h-16 bg-gradient-to-tr from-blue-700 to-indigo-900 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-blue-500/20">🐱</div>
                             <div>
-                                <h4 class="font-black text-xl tracking-tight text-white leading-none mb-1 text-white">Money 操盘室</h4>
-                                <p class="text-[11px] text-blue-400 font-black uppercase tracking-widest">Global Analyst Money</p>
+                                <h4 class="font-black text-xl tracking-tight text-white leading-none mb-1 text-white">MMA 操盘室</h4>
+                                <p class="text-[11px] text-blue-400 font-black uppercase tracking-widest">Elite Analyst Max</p>
                             </div>
                         </div>
 
                         <!-- 手动股价校准 -->
                         <div class="mb-6 space-y-2">
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 text-white opacity-70">输入 BURSA 实时价格 (RM)</label>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 text-white opacity-70">输入 MMA 实时价格 (RM)</label>
                             <div class="flex gap-2">
                                 <input type="number" id="manualPriceInput" step="0.001" 
                                     class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white font-mono font-bold outline-none focus:border-blue-500 transition-all placeholder:text-slate-500" 
@@ -161,16 +161,16 @@
                         </div>
                         
                         <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center transition-all duration-300">
-                            “阿盛，研报准备就绪。点击下方分析按钮，分析后可直接转发至 WhatsApp。”
+                            “Max，MMA 数据库已载入。点击分析按钮查看深度研报并一键转发。”
                         </div>
 
                         <div class="space-y-3 mb-6">
                             <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
-                                <span class="text-slate-500 font-black uppercase text-[10px] tracking-widest">支撑参考</span>
+                                <span class="text-slate-500 font-black uppercase text-[10px] tracking-widest">MMA 支撑</span>
                                 <span id="supportLevel" class="font-mono font-black text-lg text-white tracking-tighter">RM --</span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
-                                <span class="text-slate-500 font-black uppercase text-[10px] tracking-widest">压力参考</span>
+                                <span class="text-slate-500 font-black uppercase text-[10px] tracking-widest">MMA 压力</span>
                                 <span id="resistanceLevel" class="font-mono font-black text-lg text-blue-400 tracking-tighter">RM --</span>
                             </div>
                         </div>
@@ -178,10 +178,10 @@
                         <!-- 按钮组 -->
                         <div class="flex flex-col gap-3">
                             <button id="deepAnalysisBtn" onclick="runDeepAnalysis()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black py-4 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl shadow-blue-900/50">
-                                <i id="btnIcon" data-lucide="target" size="20"></i> <span id="btnText">全局深度分析</span>
+                                <i id="btnIcon" data-lucide="target" size="20"></i> <span id="btnText">MMA 全局分析</span>
                             </button>
                             <button id="whatsappShareBtn" onclick="shareToWhatsApp()" class="w-full whatsapp-btn text-white font-black py-4 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl">
-                                <i data-lucide="message-circle" size="20"></i> 转发至 WhatsApp
+                                <i data-lucide="message-circle" size="20"></i> 转发研报给 Max
                             </button>
                         </div>
                     </div>
@@ -192,19 +192,19 @@
             <div class="bg-white p-8 rounded-[3rem] border border-slate-100 flex flex-col md:flex-row items-center justify-between shadow-sm gap-6">
                 <div class="flex flex-wrap justify-center gap-12">
                     <div class="flex flex-col">
-                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">BURSA 板块分类</span>
+                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Bursa Sector</span>
                         <span id="displaySector" class="text-base font-black text-slate-700 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-inner">--</span>
                     </div>
                     <div class="flex flex-col border-l border-slate-100 pl-12">
-                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">数据库引擎</span>
-                        <span id="dataStatusBadge" class="text-base font-black text-emerald-500 flex items-center gap-2">
-                            <i data-lucide="database" size="16"></i> BURSA-GENETIC (LOADED)
+                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">数据引擎</span>
+                        <span id="dataStatusBadge" class="text-base font-black text-emerald-500 flex items-center gap-2 uppercase">
+                            <i data-lucide="database" size="16"></i> MMA-Genetic (LOADED)
                         </span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
                     <i data-lucide="check-circle" class="text-blue-500 w-4 h-4"></i>
-                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter">实时转发已就绪</span>
+                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter">MMA 系统已同步</span>
                 </div>
             </div>
 
@@ -214,14 +214,13 @@
     <script>
         lucide.createIcons();
 
-        // BURSA 数据库
+        // MMA 数据库 (基于真实 Bursa 数据)
         const BURSA_DB = [
             { code: '1155', name: 'MAYBANK', price: 10.64, sector: '金融服务' },
             { code: '1023', name: 'CIMB', price: 8.35, sector: '金融服务' },
             { code: '1295', name: 'PBBANK', price: 4.54, sector: '金融服务' },
             { code: '1066', name: 'RHBBANK', price: 6.22, sector: '金融服务' },
             { code: '5819', name: 'HLBANK', price: 21.40, sector: '金融服务' },
-            { code: '1015', name: 'AMBANK', price: 5.15, sector: '金融服务' },
             { code: '4677', name: 'YTL', price: 3.65, sector: '公用事业' },
             { code: '6742', name: 'YTLPOWR', price: 5.12, sector: '公用事业' },
             { code: '5347', name: 'TENAGA', price: 14.52, sector: '公用事业' },
@@ -249,7 +248,7 @@
         let activeSector = '全部';
         let mainChart = null;
         let historyDataset = [];
-        let lastReportContent = ""; // 记录最新的研报内容
+        let lastReportContent = ""; 
 
         function getNow() {
             const d = new Date();
@@ -264,8 +263,7 @@
             const recent = prices.slice(-(period + 1));
             for (let i = 1; i < recent.length; i++) {
                 let diff = recent[i] - recent[i - 1];
-                if (diff >= 0) gains += diff;
-                else losses -= diff;
+                if (diff >= 0) gains += diff; else losses -= diff;
             }
             if (losses === 0) return 100;
             let rs = (gains / period) / (losses / period);
@@ -297,7 +295,7 @@
             return data;
         }
 
-        // --- 全局深度分析逻辑 ---
+        // --- MMA 全局深度分析逻辑 ---
         window.runDeepAnalysis = () => {
             const btn = document.getElementById('deepAnalysisBtn');
             const btnIcon = document.getElementById('btnIcon');
@@ -308,7 +306,7 @@
             btn.classList.add('opacity-80', 'cursor-not-allowed');
             btnIcon.setAttribute('data-lucide', 'loader-2');
             btnIcon.classList.add('loading-spin');
-            btnText.innerText = "Money 正在深入扫描...";
+            btnText.innerText = "MMA 正在深入扫描...";
             lucide.createIcons();
 
             setTimeout(() => {
@@ -319,26 +317,26 @@
                     
                     let report = "";
                     if (rsi < 36) {
-                        report = `【Money 深度报告】阿盛，${currentStock.name} 30日模型显示极度超卖。Money 侦测到 RM ${price.toFixed(3)} 附近有强力支撑基因，当前价位适合采取“埋伏策略”。🐱💎`;
+                        report = `【MMA 深度报告】Max，${currentStock.name} 30日模型显示极度超卖。MMA 侦测到 RM ${price.toFixed(3)} 附近有强力支撑基因，当前价位适合采取“埋伏策略”。🐱💎`;
                     } else if (rsi > 64) {
-                        report = `【Money 深度报告】风险警告！${currentStock.name} 情绪指标 RSI 为 ${rsi}，严重偏离季度中轴。Money 建议阿盛分批收网，避免高位站岗。🐟🛑`;
+                        report = `【MMA 深度报告】Max 风险警告！${currentStock.name} 情绪指标 RSI 为 ${rsi}，严重偏离季度中轴。MMA 建议你分批收网。🐟🛑`;
                     } else {
-                        report = `【Money 深度报告】${currentStock.name} 当前波动率维持在健康水平。模型显示其正在进行月线级别的盘整。建议在 RM ${(price * 0.985).toFixed(3)} 防御观察。🐱`;
+                        report = `【MMA 深度报告】${currentStock.name} 当前波动率维持在健康水平。模型显示其正在进行月线级别的盘整。建议 Max 在 RM ${(price * 0.985).toFixed(3)} 防御观察。🐱`;
                     }
 
-                    lastReportContent = report; // 保存内容供转发
+                    lastReportContent = report; 
                     adviceBox.innerText = report;
                     adviceBox.classList.add('bg-blue-500/20');
                     setTimeout(() => adviceBox.classList.remove('bg-blue-500/20'), 500);
 
                 } catch (e) {
-                    adviceBox.innerText = "“分析引擎暂时休眠... 🐱💤”";
+                    adviceBox.innerText = "“MMA 引擎暂时休眠... 🐱💤”";
                 } finally {
                     btn.disabled = false;
                     btn.classList.remove('opacity-80', 'cursor-not-allowed');
                     btnIcon.setAttribute('data-lucide', 'target');
                     btnIcon.classList.remove('loading-spin');
-                    btnText.innerText = "全局深度分析";
+                    btnText.innerText = "MMA 全局分析";
                     lucide.createIcons();
                 }
             }, 1200);
@@ -347,19 +345,18 @@
         // --- WhatsApp 转发功能 ---
         window.shareToWhatsApp = () => {
             if (!lastReportContent || lastReportContent.includes("研报准备就绪")) {
-                // 如果还没分析，先给个基础版
                 const rsi = document.getElementById('displayRSI').innerText;
                 const price = currentStock.price.toFixed(3);
-                lastReportContent = `【Money 实时快报】阿盛，${currentStock.name} (${currentStock.code}) 目前报 RM ${price}，RSI 为 ${rsi}。请进入 Money BURSA 终端查看完整深度分析。🐱📈`;
+                lastReportContent = `【MMA 实时快报】Max，${currentStock.name} (${currentStock.code}) 目前报 RM ${price}，RSI 为 ${rsi}。请进入 MMA 终端查看完整深度分析。🐱📈`;
             }
 
-            const message = `*📊 Money BURSA 深度量化研报*\n\n` +
+            const message = `*📊 Money & Max Analyst (MMA) 深度研报*\n\n` +
                             `*股票名称:* ${currentStock.name}\n` +
                             `*官方代码:* ${currentStock.code}.KL\n` +
                             `*当前价格:* RM ${currentStock.price.toFixed(3)}\n` +
                             `*量化 RSI:* ${document.getElementById('displayRSI').innerText}\n\n` +
-                            `*Money 结论:*\n${lastReportContent}\n\n` +
-                            `_—— 数据由 Money & 阿盛联合提供 👨‍💻🐱_`;
+                            `*MMA 结论:*\n${lastReportContent}\n\n` +
+                            `_—— 数据由 MMA 终端独家提供 👨‍💻🐱_`;
 
             const encodedMsg = encodeURIComponent(message);
             const whatsappUrl = `https://wa.me/?text=${encodedMsg}`;
@@ -389,9 +386,9 @@
                 return mSearch && mSector;
             });
             if (filtered.length === 0 && query.length === 4 && !isNaN(query)) {
-                filtered = [{ code: query, name: 'BURSA扫描-' + query, price: 1.000, initialPrice: 1.000, sector: '未知' }];
+                filtered = [{ code: query, name: 'MMA扫描-' + query, price: 1.000, initialPrice: 1.000, sector: '未知' }];
             }
-            document.getElementById('stockCountLabel').innerText = filtered.length + ' BURSA 股票';
+            document.getElementById('stockCountLabel').innerText = filtered.length + ' MMA 股票池';
             document.getElementById('stockList').innerHTML = filtered.slice(0, 60).map(s => `
                 <button onclick="selectStock('${s.code}')" class="stock-card flex items-center gap-3 p-2 pr-4 rounded-xl transition-all border border-slate-100 shrink-0 ${currentStock.code === s.code ? 'active-card' : 'bg-white/60 hover:border-blue-400'}">
                     <div class="w-1.5 h-8 rounded-full ${s.price >= s.initialPrice ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
@@ -430,16 +427,16 @@
             document.getElementById('rsiBar').style.width = rsi + '%';
             document.getElementById('rsiBar').className = `h-full transition-all duration-700 ${rsi < 35 ? 'bg-emerald-500' : (rsi > 65 ? 'bg-rose-500' : 'bg-blue-600')}`;
 
-            let status = '趋势平衡'; let color = 'text-blue-500';
-            if (rsi < 38) { status = '底部分歧'; color = 'text-emerald-600'; }
-            else if (rsi > 62) { status = '顶部背离'; color = 'text-rose-600'; }
+            let status = 'MMA 趋势平衡'; let color = 'text-blue-500';
+            if (rsi < 38) { status = 'MMA 底部分歧'; color = 'text-emerald-600'; }
+            else if (rsi > 62) { status = 'MMA 顶部背离'; color = 'text-rose-600'; }
 
             document.getElementById('displayStatus').innerText = status;
             document.getElementById('displayStatus').className = `text-4xl font-black tracking-tighter ${color}`;
             document.getElementById('displaySector').innerText = currentStock.sector;
             document.getElementById('supportLevel').innerText = 'RM ' + (currentStock.price * 0.975).toFixed(3);
             document.getElementById('resistanceLevel').innerText = 'RM ' + (currentStock.price * 1.025).toFixed(3);
-            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • BURSA 逻辑对齐`;
+            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • MMA 逻辑已对齐`;
 
             renderChart();
         }
