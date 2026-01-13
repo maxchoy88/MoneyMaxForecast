@@ -17,6 +17,8 @@
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .loading-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .whatsapp-btn { background-color: #25D366; transition: all 0.3s; }
+        .whatsapp-btn:hover { background-color: #128C7E; transform: scale(1.02); }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -48,7 +50,7 @@
             <div class="text-right hidden sm:block">
                 <div class="flex items-center gap-2 justify-end">
                     <i data-lucide="calendar" class="w-3 h-3 text-blue-500"></i>
-                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight">--</span>
+                    <span id="headerDate" class="text-[11px] font-bold text-slate-500 tracking-tight tracking-tighter">2026-01-13</span>
                 </div>
                 <p class="text-sm font-bold text-slate-700">Money 🐱 & 阿盛 👨‍💻</p>
             </div>
@@ -147,7 +149,7 @@
 
                         <!-- 手动股价校准 -->
                         <div class="mb-6 space-y-2">
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">输入 BURSA 实时价格 (RM)</label>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 text-white opacity-70">输入 BURSA 实时价格 (RM)</label>
                             <div class="flex gap-2">
                                 <input type="number" id="manualPriceInput" step="0.001" 
                                     class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white font-mono font-bold outline-none focus:border-blue-500 transition-all placeholder:text-slate-500" 
@@ -159,7 +161,7 @@
                         </div>
                         
                         <div id="moneyAdvice" class="flex-1 bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-6 mb-6 border border-white/10 italic text-sm leading-relaxed text-slate-300 shadow-inner flex flex-col justify-center text-center transition-all duration-300">
-                            “阿盛，BURSA 数据库已载入。请输入你关注的股票现价...”
+                            “阿盛，研报准备就绪。点击下方分析按钮，分析后可直接转发至 WhatsApp。”
                         </div>
 
                         <div class="space-y-3 mb-6">
@@ -173,9 +175,15 @@
                             </div>
                         </div>
                         
-                        <button id="deepAnalysisBtn" onclick="runDeepAnalysis()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black py-5 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl shadow-blue-900/50">
-                            <i id="btnIcon" data-lucide="target" size="20"></i> <span id="btnText">全局深度分析</span>
-                        </button>
+                        <!-- 按钮组 -->
+                        <div class="flex flex-col gap-3">
+                            <button id="deepAnalysisBtn" onclick="runDeepAnalysis()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black py-4 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl shadow-blue-900/50">
+                                <i id="btnIcon" data-lucide="target" size="20"></i> <span id="btnText">全局深度分析</span>
+                            </button>
+                            <button id="whatsappShareBtn" onclick="shareToWhatsApp()" class="w-full whatsapp-btn text-white font-black py-4 rounded-[1.5rem] transition-all flex items-center justify-center gap-3 active:scale-95 text-lg shadow-xl">
+                                <i data-lucide="message-circle" size="20"></i> 转发至 WhatsApp
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -196,7 +204,7 @@
                 </div>
                 <div class="flex items-center gap-3 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
                     <i data-lucide="check-circle" class="text-blue-500 w-4 h-4"></i>
-                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter">实时校准就绪</span>
+                    <span id="lastUpdate" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter">实时转发已就绪</span>
                 </div>
             </div>
 
@@ -241,6 +249,7 @@
         let activeSector = '全部';
         let mainChart = null;
         let historyDataset = [];
+        let lastReportContent = ""; // 记录最新的研报内容
 
         function getNow() {
             const d = new Date();
@@ -288,33 +297,19 @@
             return data;
         }
 
-        // --- 修复版：全局深度分析逻辑 ---
+        // --- 全局深度分析逻辑 ---
         window.runDeepAnalysis = () => {
             const btn = document.getElementById('deepAnalysisBtn');
             const btnIcon = document.getElementById('btnIcon');
             const btnText = document.getElementById('btnText');
             const adviceBox = document.getElementById('moneyAdvice');
 
-            // 禁用按钮并开始动画
             btn.disabled = true;
             btn.classList.add('opacity-80', 'cursor-not-allowed');
             btnIcon.setAttribute('data-lucide', 'loader-2');
             btnIcon.classList.add('loading-spin');
             btnText.innerText = "Money 正在深入扫描...";
             lucide.createIcons();
-
-            // 故障保护：即使代码报错也强制在 1.5s 后恢复
-            const fallbackTimeout = setTimeout(resetButton, 3000);
-
-            function resetButton() {
-                btn.disabled = false;
-                btn.classList.remove('opacity-80', 'cursor-not-allowed');
-                btnIcon.setAttribute('data-lucide', 'target');
-                btnIcon.classList.remove('loading-spin');
-                btnText.innerText = "全局深度分析";
-                lucide.createIcons();
-                clearTimeout(fallbackTimeout);
-            }
 
             setTimeout(() => {
                 try {
@@ -328,29 +323,52 @@
                     } else if (rsi > 64) {
                         report = `【Money 深度报告】风险警告！${currentStock.name} 情绪指标 RSI 为 ${rsi}，严重偏离季度中轴。Money 建议阿盛分批收网，避免高位站岗。🐟🛑`;
                     } else {
-                        report = `【Money 深度报告】${currentStock.name} 当前波动率维持在 0.012% 的健康水平。模型显示其正在进行月线级别的盘整。建议在 RM ${(price * 0.985).toFixed(3)} 防御观察。🐱`;
+                        report = `【Money 深度报告】${currentStock.name} 当前波动率维持在健康水平。模型显示其正在进行月线级别的盘整。建议在 RM ${(price * 0.985).toFixed(3)} 防御观察。🐱`;
                     }
 
+                    lastReportContent = report; // 保存内容供转发
                     adviceBox.innerText = report;
-                    // 增加分析完成后的视觉反馈
-                    adviceBox.classList.remove('bg-white/5');
                     adviceBox.classList.add('bg-blue-500/20');
                     setTimeout(() => adviceBox.classList.remove('bg-blue-500/20'), 500);
 
                 } catch (e) {
-                    adviceBox.innerText = "“分析引擎暂时休眠，请稍后重试... 🐱💤”";
+                    adviceBox.innerText = "“分析引擎暂时休眠... 🐱💤”";
                 } finally {
-                    resetButton();
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                    btnIcon.setAttribute('data-lucide', 'target');
+                    btnIcon.classList.remove('loading-spin');
+                    btnText.innerText = "全局深度分析";
+                    lucide.createIcons();
                 }
             }, 1200);
         };
 
+        // --- WhatsApp 转发功能 ---
+        window.shareToWhatsApp = () => {
+            if (!lastReportContent || lastReportContent.includes("研报准备就绪")) {
+                // 如果还没分析，先给个基础版
+                const rsi = document.getElementById('displayRSI').innerText;
+                const price = currentStock.price.toFixed(3);
+                lastReportContent = `【Money 实时快报】阿盛，${currentStock.name} (${currentStock.code}) 目前报 RM ${price}，RSI 为 ${rsi}。请进入 Money BURSA 终端查看完整深度分析。🐱📈`;
+            }
+
+            const message = `*📊 Money BURSA 深度量化研报*\n\n` +
+                            `*股票名称:* ${currentStock.name}\n` +
+                            `*官方代码:* ${currentStock.code}.KL\n` +
+                            `*当前价格:* RM ${currentStock.price.toFixed(3)}\n` +
+                            `*量化 RSI:* ${document.getElementById('displayRSI').innerText}\n\n` +
+                            `*Money 结论:*\n${lastReportContent}\n\n` +
+                            `_—— 数据由 Money & 阿盛联合提供 👨‍💻🐱_`;
+
+            const encodedMsg = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/?text=${encodedMsg}`;
+            window.open(whatsappUrl, '_blank');
+        };
+
         window.calibratePrice = () => {
             const val = parseFloat(document.getElementById('manualPriceInput').value);
-            if (!isNaN(val) && val > 0) {
-                currentStock.price = val;
-                updateUI();
-            }
+            if (!isNaN(val) && val > 0) { currentStock.price = val; updateUI(); }
         };
 
         function updateSector(s) { activeSector = s; renderFilters(); renderStockList(); }
@@ -421,7 +439,7 @@
             document.getElementById('displaySector').innerText = currentStock.sector;
             document.getElementById('supportLevel').innerText = 'RM ' + (currentStock.price * 0.975).toFixed(3);
             document.getElementById('resistanceLevel').innerText = 'RM ' + (currentStock.price * 1.025).toFixed(3);
-            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • BURSA 逻辑已核对`;
+            document.getElementById('lastUpdate').innerText = `${dateStr} ${timeStr} • BURSA 逻辑对齐`;
 
             renderChart();
         }
